@@ -244,3 +244,168 @@ async function loadAdmin() {
 }
 
 loadAdmin();
+
+// ========================================
+// GERENCIAMENTO DE RESERVAS
+// ========================================
+
+const adminToken = document.getElementById('admin-token');
+const loadReservationsButton = document.getElementById('load-reservations');
+const reservationsList = document.getElementById('reservations-list');
+const reservationsMessage = document.getElementById('reservations-message');
+
+function showReservationMessage(text, type = 'success') {
+    reservationsMessage.textContent = text;
+    reservationsMessage.className = `alert alert-${type} mt-3`;
+}
+
+function clearReservationMessage() {
+    reservationsMessage.textContent = '';
+    reservationsMessage.className = 'mt-3';
+}
+
+async function fetchReservations() {
+    const token = adminToken.value.trim();
+
+    if (!token) {
+        showReservationMessage(
+            'Informe o token administrativo.',
+            'warning'
+        );
+        return;
+    }
+
+    clearReservationMessage();
+
+    loadReservationsButton.disabled = true;
+    loadReservationsButton.textContent = 'Consultando...';
+
+    try {
+        const response = await fetch(
+            `${APP_CONFIG.api.baseUrl}/reservations/admin`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (response.status === 401) {
+            throw new Error('Token administrativo inválido.');
+        }
+
+        if (!response.ok) {
+            throw new Error(
+                data.error || 'Não foi possível consultar as reservas.'
+            );
+        }
+
+        renderReservations(data);
+
+    } catch (error) {
+        reservationsList.textContent = '';
+        showReservationMessage(error.message, 'danger');
+
+    } finally {
+        loadReservationsButton.disabled = false;
+        loadReservationsButton.textContent = 'Consultar reservas';
+    }
+}
+
+function renderReservations(reservations) {
+    reservationsList.innerHTML = '';
+
+    if (reservations.length === 0) {
+        reservationsList.textContent = 'Nenhuma reserva realizada.';
+        return;
+    }
+
+    reservations.forEach(reservation => {
+        const gift = giftData.presentes.find(
+            item => Number(item.id) === Number(reservation.giftId)
+        );
+
+        const item = document.createElement('div');
+        item.className = 'd-flex justify-content-between align-items-center gap-3 border rounded p-3 mb-3';
+
+        const name = document.createElement('strong');
+        name.textContent = gift
+            ? gift.nome
+            : `Presente ID ${reservation.giftId}`;
+
+        const guest = document.createElement('p');
+        guest.className = 'mb-1';
+        guest.textContent = `Convidado: ${reservation.guestName}`;
+
+        const date = document.createElement('small');
+        date.className = 'text-secondary';
+        date.textContent =
+            `Reservado em: ${new Date(reservation.createdAt).toLocaleString('pt-BR')}`;
+
+        const cancelButton = document.createElement('button');
+        cancelButton.type = 'button';
+        cancelButton.className = 'btn btn-sm btn-outline-danger mt-2';
+        cancelButton.textContent = 'Cancelar reserva';
+
+        cancelButton.addEventListener('click', () => {
+            cancelReservation(reservation.giftId, cancelButton);
+        });
+
+        const details = document.createElement('div');
+        details.className = 'flex-grow-1';
+
+        details.append(name, guest, date);
+
+        cancelButton.classList.add('flex-shrink-0');
+
+        item.append(details, cancelButton);
+        reservationsList.append(item);
+    });
+}
+
+async function cancelReservation(giftId, button) {
+    const confirmed = window.confirm(
+        'Deseja realmente cancelar esta reserva?'
+    );
+
+    if (!confirmed) return;
+
+    const token = adminToken.value.trim();
+
+    button.disabled = true;
+    button.textContent = 'Cancelando...';
+
+    try {
+        const response = await fetch(
+            `${APP_CONFIG.api.baseUrl}/reservations/${giftId}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.error || 'Não foi possível cancelar a reserva.'
+            );
+        }
+
+        showReservationMessage('Reserva cancelada com sucesso.');
+
+        await fetchReservations();
+
+    } catch (error) {
+        button.disabled = false;
+        button.textContent = 'Cancelar reserva';
+
+        showReservationMessage(error.message, 'danger');
+    }
+}
+
+loadReservationsButton.addEventListener('click', fetchReservations);

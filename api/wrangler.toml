@@ -1,0 +1,14 @@
+name = "lista-presentes-api"
+main = "src/index.js"
+compatibility_date = "2026-05-03"
+workers_dev = true
+
+[[durable_objects.bindings]]
+name = "RESERVATIONS"
+class_name = "ReservationsStore"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ReservationsStore"]
+[vars]
+ALLOWED_ORIGINS = "http://localhost:8000"

@@ -1,4 +1,3 @@
-
 const formatCurrency = (value) => {
     return new Intl.NumberFormat('pt-BR', {
         style: 'currency',
@@ -18,7 +17,10 @@ async function loadGifts() {
     const container = document.getElementById('gifts-container');
 
     try {
-        const response = await fetch('data/presentes.json');
+        const [response, reservedIds] = await Promise.all([
+            fetch('data/presentes.json'),
+            ReservationService.getReservedGiftIds()
+        ]);
 
         if (!response.ok) {
             throw new Error('Não foi possível carregar a lista.');
@@ -39,7 +41,6 @@ async function loadGifts() {
 
         data.presentes.forEach(gift => {
             const column = document.createElement('div');
-
             column.className = 'col-12 col-sm-6 col-lg-4';
 
             const card = document.createElement('article');
@@ -67,47 +68,58 @@ async function loadGifts() {
             const actions = document.createElement('div');
             actions.className = 'd-grid gap-2';
 
-            if (gift.disponivel === false) {
-                const unavailable = document.createElement('button');
+            const isReserved =
+                reservedIds.includes(Number(gift.id)) ||
+                gift.disponivel === false;
 
-                unavailable.className = 'btn-gift';
-                unavailable.textContent = 'Presente escolhido';
-                unavailable.disabled = true;
+            const reserveButton = document.createElement('button');
 
-                actions.append(unavailable);
+            reserveButton.type = 'button';
+            reserveButton.className = 'btn-gift';
+
+            if (isReserved) {
+                reserveButton.textContent = 'Presente escolhido';
+                reserveButton.disabled = true;
             } else {
-                const reserveButton = document.createElement('button');
+                reserveButton.textContent = 'Reservar presente';
 
-                reserveButton.type = 'button';
-                reserveButton.className = 'btn-gift';
-                reserveButton.textContent = 'Avisar que vou presentear';
-
-                reserveButton.addEventListener('click', () => {
-                    console.log('Botão de presente clicado!');
-
+                reserveButton.addEventListener('click', async () => {
                     const guestName = prompt('Qual é o seu nome?');
 
                     if (!guestName || !guestName.trim()) {
                         return;
                     }
 
-                    const phone = APP_CONFIG.whatsapp.phone;
+                    reserveButton.disabled = true;
+                    reserveButton.textContent = 'Reservando...';
 
-                    const message = [
-                        'Olá! Quero presentear no aniversário.',
-                        '',
-                        `Presente: ${gift.nome}`,
-                        `Valor: ${formatCurrency(gift.preco)}`,
-                        `Meu nome: ${guestName.trim()}`
-                    ].join('\n');
+                    try {
+                        await ReservationService.reserveGift(
+                            gift.id,
+                            guestName.trim()
+                        );
 
-                    const whatsappUrl =
-                        `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+                        reserveButton.textContent = 'Presente escolhido';
 
-                    window.location.href = whatsappUrl;
+                        alert(
+                            'Reserva realizada com sucesso! Obrigado pelo carinho!'
+                        );
+
+                    } catch (error) {
+                        if (error.message.includes('já foi reservado')) {
+                            reserveButton.textContent = 'Presente escolhido';
+
+                            alert(
+                                'Este presente acabou de ser reservado por outra pessoa.'
+                            );
+                        } else {
+                            reserveButton.disabled = false;
+                            reserveButton.textContent = 'Reservar presente';
+
+                            alert(error.message);
+                        }
+                    }
                 });
-
-                actions.append(reserveButton);
             }
 
             const storeButton = document.createElement('a');
@@ -118,7 +130,7 @@ async function loadGifts() {
             storeButton.target = '_blank';
             storeButton.rel = 'noopener noreferrer';
 
-            actions.append(storeButton);
+            actions.append(reserveButton, storeButton);
 
             body.append(title, description, price, actions);
             card.append(image, body);
@@ -128,7 +140,9 @@ async function loadGifts() {
         });
 
     } catch (error) {
-        container.textContent = 'Não foi possível carregar os presentes.';
+        container.textContent =
+            'Não foi possível carregar os presentes e consultar as reservas. Tente novamente mais tarde.';
+
         console.error(error);
     }
 }
