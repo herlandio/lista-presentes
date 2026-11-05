@@ -47,7 +47,60 @@
     </header>
 
     <main class="container py-5">
+                <!-- CONFIRMAÇÃO DE PRESENÇA -->
+        <section class="card border-0 shadow-sm mb-5">
+            <div class="card-body p-4 text-center">
 
+                <h2 class="h4 mb-2">Confirme sua presença</h2>
+
+                <p class="text-secondary mb-4">
+                    Sua presença é muito especial! Informe o código
+                    do seu convite para confirmar.
+                </p>
+
+                <form id="rsvp-form" class="mx-auto" style="max-width: 450px;">
+
+                    <div class="mb-3 text-start">
+                        <label for="invite-code" class="form-label">
+                            Código do convite
+                        </label>
+
+                        <input
+                            type="text"
+                            class="form-control text-center text-uppercase"
+                            id="invite-code"
+                            placeholder="ANIV-XXXXXXXX"
+                            maxlength="13"
+                            required
+                        >
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button
+                            type="submit"
+                            id="confirm-presence"
+                            class="btn btn-success"
+                            value="confirmed"
+                        >
+                            Vou comparecer
+                        </button>
+
+                        <button
+                            type="submit"
+                            id="decline-presence"
+                            class="btn btn-outline-secondary"
+                            value="declined"
+                        >
+                            Não poderei comparecer
+                        </button>
+                    </div>
+
+                </form>
+
+                <div id="rsvp-message" class="mt-3" role="status"></div>
+
+            </div>
+        </section>
         <section class="text-center mb-5">
             <h2>Escolha um presente</h2>
 

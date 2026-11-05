@@ -195,3 +195,93 @@ copyButton.addEventListener('click', async () => {
             'Não foi possível copiar automaticamente o link.';
     }
 });
+// ========================================
+// CONFIRMAÇÃO DE PRESENÇA (RSVP)
+// ========================================
+
+const rsvpForm = document.getElementById('rsvp-form');
+const inviteCodeInput = document.getElementById('invite-code');
+const rsvpMessage = document.getElementById('rsvp-message');
+
+const confirmPresenceButton = document.getElementById('confirm-presence');
+const declinePresenceButton = document.getElementById('decline-presence');
+
+function showRsvpMessage(message, type = 'success') {
+    rsvpMessage.textContent = message;
+    rsvpMessage.className = `alert alert-${type} mt-3`;
+}
+
+inviteCodeInput.addEventListener('input', () => {
+    inviteCodeInput.value = inviteCodeInput.value.toUpperCase();
+});
+
+rsvpForm.addEventListener('submit', async event => {
+    event.preventDefault();
+
+    const code = inviteCodeInput.value.trim().toUpperCase();
+    const status = event.submitter?.value;
+
+    if (!/^ANIV-[A-F0-9]{8}$/.test(code)) {
+        showRsvpMessage(
+            'Informe um código de convite válido.',
+            'warning'
+        );
+        return;
+    }
+
+    if (!['confirmed', 'declined'].includes(status)) {
+        showRsvpMessage(
+            'Selecione uma resposta para o convite.',
+            'warning'
+        );
+        return;
+    }
+
+    confirmPresenceButton.disabled = true;
+    declinePresenceButton.disabled = true;
+
+    const selectedButton = status === 'confirmed'
+        ? confirmPresenceButton
+        : declinePresenceButton;
+
+    const originalText = selectedButton.textContent;
+    selectedButton.textContent = 'Enviando resposta...';
+
+    rsvpMessage.textContent = '';
+
+    try {
+        const response = await fetch(
+            `${APP_CONFIG.api.baseUrl}/guests/confirm`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ code, status })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.error || 'Não foi possível registrar sua resposta.'
+            );
+        }
+
+        showRsvpMessage(
+            status === 'confirmed'
+                ? 'Presença confirmada! Será muito bom contar com você! ❤️'
+                : 'Resposta registrada. Sentiremos sua falta! ❤️'
+        );
+
+    } catch (error) {
+        showRsvpMessage(error.message, 'danger');
+
+    } finally {
+        confirmPresenceButton.disabled = false;
+        declinePresenceButton.disabled = false;
+        selectedButton.textContent = originalText;
+    }
+});
+

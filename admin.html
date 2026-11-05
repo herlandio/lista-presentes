@@ -67,6 +67,76 @@
 
             </div>
         </section>
+                <!-- GERENCIAMENTO DE CONVIDADOS -->
+        <section class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+
+                <h2 class="h5 mb-3">Confirmação de presença</h2>
+
+                <form id="guest-form" class="mb-4">
+                    <div class="mb-3">
+                        <label for="guest-name" class="form-label">
+                            Nome do convidado
+                        </label>
+
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="guest-name"
+                            maxlength="100"
+                            placeholder="Nome completo"
+                            required
+                        >
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="add-guest"
+                        class="btn btn-primary"
+                    >
+                        Cadastrar convidado
+                    </button>
+                </form>
+
+                <div id="guest-message" class="mt-3"></div>
+
+                <hr>
+
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <div class="border rounded p-3 flex-fill">
+                        <div class="small text-secondary">Confirmados</div>
+                        <strong id="guest-confirmed-count">0</strong>
+                    </div>
+
+                    <div class="border rounded p-3 flex-fill">
+                        <div class="small text-secondary">Recusados</div>
+                        <strong id="guest-declined-count">0</strong>
+                    </div>
+
+                    <div class="border rounded p-3 flex-fill">
+                        <div class="small text-secondary">Pendentes</div>
+                        <strong id="guest-pending-count">0</strong>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="h6 mb-0">Convidados cadastrados</h3>
+
+                    <button
+                        type="button"
+                        id="load-guests"
+                        class="btn btn-outline-primary btn-sm"
+                    >
+                        Atualizar lista
+                    </button>
+                </div>
+
+                <div id="guests-list">
+                    Informe o token administrativo para consultar os convidados.
+                </div>
+
+            </div>
+        </section>
         <section class="card border-0 shadow-sm mb-4">
             <div class="card-body p-4">
 

@@ -409,3 +409,212 @@ async function cancelReservation(giftId, button) {
 }
 
 loadReservationsButton.addEventListener('click', fetchReservations);
+// ========================================
+// GERENCIAMENTO DE CONVIDADOS (RSVP)
+// ========================================
+
+const guestForm = document.getElementById('guest-form');
+const guestName = document.getElementById('guest-name');
+const addGuestButton = document.getElementById('add-guest');
+const loadGuestsButton = document.getElementById('load-guests');
+const guestsList = document.getElementById('guests-list');
+const guestMessage = document.getElementById('guest-message');
+
+function showGuestMessage(text, type = 'success') {
+    guestMessage.textContent = text;
+    guestMessage.className = `alert alert-${type} mt-3`;
+}
+
+function clearGuestMessage() {
+    guestMessage.textContent = '';
+    guestMessage.className = 'mt-3';
+}
+
+async function guestApiRequest(path, options = {}) {
+    const token = adminToken.value.trim();
+
+    if (!token) {
+        throw new Error('Informe o token administrativo.');
+    }
+
+    const response = await fetch(
+        `${APP_CONFIG.api.baseUrl}${path}`,
+        {
+            ...options,
+            headers: {
+                ...(options.headers || {}),
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data = await response.json();
+
+    if (response.status === 401) {
+        throw new Error('Token administrativo inválido.');
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || 'Não foi possível realizar a operação.'
+        );
+    }
+
+    return data;
+}
+
+async function fetchGuests() {
+    clearGuestMessage();
+
+    loadGuestsButton.disabled = true;
+    loadGuestsButton.textContent = 'Consultando...';
+
+    try {
+        const guests = await guestApiRequest('/guests/admin');
+
+        renderGuests(guests);
+
+    } catch (error) {
+        guestsList.textContent = '';
+        showGuestMessage(error.message, 'danger');
+
+    } finally {
+        loadGuestsButton.disabled = false;
+        loadGuestsButton.textContent = 'Atualizar lista';
+    }
+}
+
+function renderGuests(guests) {
+    guestsList.innerHTML = '';
+
+    const confirmed = guests.filter(
+        guest => guest.status === 'confirmed'
+    ).length;
+
+    const declined = guests.filter(
+        guest => guest.status === 'declined'
+    ).length;
+
+    const pending = guests.filter(
+        guest => guest.status === 'pending'
+    ).length;
+
+    document.getElementById('guest-confirmed-count').textContent = confirmed;
+    document.getElementById('guest-declined-count').textContent = declined;
+    document.getElementById('guest-pending-count').textContent = pending;
+
+    if (guests.length === 0) {
+        guestsList.textContent = 'Nenhum convidado cadastrado.';
+        return;
+    }
+
+    guests.forEach(guest => {
+        const item = document.createElement('div');
+        item.className = 'border rounded p-3 mb-3';
+
+        const header = document.createElement('div');
+        header.className = 'd-flex flex-wrap justify-content-between gap-2';
+
+        const name = document.createElement('strong');
+        name.textContent = guest.name;
+
+        const status = document.createElement('span');
+        status.className = 'badge';
+
+        const statusLabels = {
+            confirmed: 'Confirmado',
+            declined: 'Não comparecerá',
+            pending: 'Pendente'
+        };
+
+        const statusClasses = {
+            confirmed: 'text-bg-success',
+            declined: 'text-bg-danger',
+            pending: 'text-bg-secondary'
+        };
+
+        status.textContent = statusLabels[guest.status] || 'Desconhecido';
+        status.classList.add(
+            statusClasses[guest.status] || 'text-bg-secondary'
+        );
+
+        header.append(name, status);
+
+        const code = document.createElement('p');
+        code.className = 'small text-secondary mt-2 mb-2';
+        code.textContent = `Código do convite: ${guest.code}`;
+
+        const copyButton = document.createElement('button');
+        copyButton.type = 'button';
+        copyButton.className = 'btn btn-sm btn-outline-secondary';
+        copyButton.textContent = 'Copiar código';
+
+        copyButton.addEventListener('click', async () => {
+            try {
+                await navigator.clipboard.writeText(guest.code);
+                copyButton.textContent = 'Copiado!';
+            } catch {
+                showGuestMessage(
+                    'Não foi possível copiar o código neste navegador.',
+                    'danger'
+                );
+            }
+        });
+
+        const updated = document.createElement('small');
+        updated.className = 'd-block text-secondary mt-2';
+
+        if (guest.updatedAt) {
+            updated.textContent =
+                `Última resposta: ${new Date(guest.updatedAt).toLocaleString('pt-BR')}`;
+        } else {
+            updated.textContent = 'Aguardando resposta.';
+        }
+
+        item.append(header, code, copyButton, updated);
+        guestsList.append(item);
+    });
+}
+
+guestForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    clearGuestMessage();
+
+    const name = guestName.value.trim();
+
+    if (!name) {
+        showGuestMessage('Informe o nome do convidado.', 'warning');
+        return;
+    }
+
+    addGuestButton.disabled = true;
+    addGuestButton.textContent = 'Cadastrando...';
+
+    try {
+        const data = await guestApiRequest('/guests/admin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ name })
+        });
+
+        guestForm.reset();
+
+        showGuestMessage(
+            `Convidado cadastrado! Código: ${data.guest.code}`
+        );
+
+        await fetchGuests();
+
+    } catch (error) {
+        showGuestMessage(error.message, 'danger');
+
+    } finally {
+        addGuestButton.disabled = false;
+        addGuestButton.textContent = 'Cadastrar convidado';
+    }
+});
+
+loadGuestsButton.addEventListener('click', fetchGuests);
+

@@ -4,6 +4,15 @@ const VALID_GIFT_IDS = new Set(
     giftsData.presentes.map(gift => Number(gift.id))
 );
 
+function generateInviteCode() {
+    const random = crypto.randomUUID()
+        .replace(/-/g, '')
+        .substring(0, 8)
+        .toUpperCase();
+
+    return `ANIV-${random}`;
+}
+
 function json(data, status = 200, headers = {}) {
     return new Response(JSON.stringify(data), {
         status,
@@ -149,6 +158,107 @@ export class ReservationsStore {
             return json({ message: 'Reserva cancelada.' });
         }
 
+        // Lista todos os convidados (somente administrador).
+        if (request.method === 'GET' && url.pathname === '/guests/admin') {
+            const guests = await this.ctx.storage.get('guests') || {};
+
+            return json(Object.values(guests));
+        }
+
+        // Cadastra um novo convidado.
+        if (request.method === 'POST' && url.pathname === '/guests/admin') {
+            let body;
+
+            try {
+                body = await request.json();
+            } catch {
+                return json({ error: 'JSON inválido.' }, 400);
+            }
+
+            const name = String(body.name || '').trim();
+
+            if (!name || name.length > 100) {
+                return json({ error: 'Nome inválido.' }, 400);
+            }
+
+            const guests = await this.ctx.storage.get('guests') || {};
+
+            let code;
+
+            do {
+                code = generateInviteCode();
+            } while (guests[code]);
+
+            const guest = {
+                code,
+                name,
+                status: 'pending',
+                createdAt: new Date().toISOString(),
+                updatedAt: null
+            };
+
+            guests[code] = guest;
+
+            await this.ctx.storage.put('guests', guests);
+
+            return json({
+                message: 'Convidado cadastrado com sucesso.',
+                guest
+            }, 201);
+        }
+
+        // Confirmação pública de presença pelo código individual.
+        if (request.method === 'POST' && url.pathname === '/guests/confirm') {
+            let body;
+
+            try {
+                body = await request.json();
+            } catch {
+                return json({ error: 'JSON inválido.' }, 400);
+            }
+
+            const code = String(body.code || '').trim().toUpperCase();
+            const status = String(body.status || '').trim();
+
+            if (!code || !/^ANIV-[A-F0-9]{8}$/.test(code)) {
+                return json({ error: 'Código de convite inválido.' }, 400);
+            }
+
+            if (!['confirmed', 'declined'].includes(status)) {
+                return json({ error: 'Resposta inválida.' }, 400);
+            }
+
+            const result = await this.ctx.storage.transaction(
+                async (txn) => {
+                    const guests = await txn.get('guests') || {};
+                    const guest = guests[code];
+
+                    if (!guest) {
+                        return { notFound: true };
+                    }
+
+                    guest.status = status;
+                    guest.updatedAt = new Date().toISOString();
+
+                    guests[code] = guest;
+
+                    await txn.put('guests', guests);
+
+                    return {
+                        status: guest.status
+                    };
+                }
+            );
+
+            if (result.notFound) {
+                return json({ error: 'Convite não encontrado.' }, 404);
+            }
+
+            return json({
+                message: 'Resposta registrada com sucesso.',
+                guest: result
+            });
+        }
         return json({ error: 'Rota não encontrada.' }, 404);
     }
 }
@@ -173,15 +283,24 @@ export default {
             return json({ status: 'ok' }, 200, headers);
         }
 
-        if (!url.pathname.startsWith('/reservations')) {
+        if (
+            !url.pathname.startsWith('/reservations') &&
+            !url.pathname.startsWith('/guests')
+        ) {
             return json({ error: 'Rota não encontrada.' }, 404, headers);
         }
 
         if (
             request.method === 'DELETE' ||
             (
-                request.method === 'GET' &&
-                url.pathname === '/reservations/admin'
+                (
+                    request.method === 'GET' ||
+                    request.method === 'POST'
+                ) &&
+                (
+                    url.pathname === '/reservations/admin' ||
+                    url.pathname === '/guests/admin'
+                )
             )
         ) {
             const authorization = request.headers.get('Authorization');
@@ -196,10 +315,13 @@ export default {
         const store = env.RESERVATIONS.get(id);
 
         const internalUrl = new URL(request.url);
-        internalUrl.pathname =
-            url.pathname === '/reservations'
-                ? '/'
-                : url.pathname.replace('/reservations', '');
+        internalUrl.pathname = url.pathname.startsWith('/guests')
+            ? url.pathname
+            : (
+                url.pathname === '/reservations'
+                    ? '/'
+                    : url.pathname.replace('/reservations', '')
+            );
 
         const result = await store.fetch(
             new Request(internalUrl, request)
