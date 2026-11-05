@@ -1,0 +1,28 @@
+{
+  "aniversariante": {
+    "nome": "Nome do aniversariante",
+    "data": "2026-12-10",
+    "titulo": "Minha lista de presentes",
+    "mensagem": "Sua presença já é um presente! Mas, se quiser me presentear, aqui estão algumas sugestões."
+  },
+  "presentes": [
+   {
+    "id": 1,
+    "nome": "Fone Bluetooth",
+    "descricao": "Fone sem fio",
+    "preco": 199.90,
+    "imagem": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600",
+    "url": "https://www.amazon.com.br/",
+    "disponivel": true
+    },
+    {
+    "id": 2,
+    "nome": "Guitarra",
+    "descricao": "Guitarra elétrica",
+    "preco": 1500.00,
+    "imagem": "https://images.unsplash.com/photo-1510915361894-db8b60106cb1?w=600",
+    "url": "https://www.mercadolivre.com.br/",
+    "disponivel": true
+    }
+  ]
+}
