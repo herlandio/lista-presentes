@@ -85,3 +85,50 @@ async function loadGifts() {
 }
 
 loadGifts();
+
+
+const shareButton = document.getElementById('share-button');
+const copyButton = document.getElementById('copy-button');
+const copyFeedback = document.getElementById('copy-feedback');
+
+const getShareMessage = () => {
+    const title = document.getElementById('birthday-title').textContent;
+
+    return `Confira minha lista de presentes: ${title} ${window.location.href}`;
+};
+
+shareButton.addEventListener('click', async () => {
+    const shareData = {
+        title: document.title,
+        text: getShareMessage(),
+        url: window.location.href
+    };
+
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+        } catch (error) {
+            if (error.name !== 'AbortError') {
+                console.error('Erro ao compartilhar:', error);
+            }
+        }
+
+        return;
+    }
+
+    const whatsappUrl =
+        `https://wa.me/?text=${encodeURIComponent(getShareMessage())}`;
+
+    window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
+});
+
+copyButton.addEventListener('click', async () => {
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+
+        copyFeedback.textContent = 'Link copiado com sucesso!';
+    } catch (error) {
+        copyFeedback.textContent =
+            'Não foi possível copiar automaticamente o link.';
+    }
+});

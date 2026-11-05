@@ -130,3 +130,48 @@ main h2 {
     padding: 30px 0;
     color: var(--muted);
 }
+
+.hero-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.btn-share,
+.btn-copy {
+    padding: 12px 22px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .2s ease;
+}
+
+.btn-share {
+    border: 1px solid var(--primary);
+    background: var(--primary);
+    color: white;
+}
+
+.btn-share:hover {
+    background: var(--primary-dark);
+}
+
+.btn-copy {
+    border: 1px solid #d9bfc5;
+    background: transparent;
+    color: var(--primary-dark);
+}
+
+.btn-copy:hover {
+    background: #f3e5e5;
+}
+
+.copy-feedback {
+    display: block;
+    min-height: 20px;
+    margin-top: 12px;
+    color: var(--primary-dark);
+}
