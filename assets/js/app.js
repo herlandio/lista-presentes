@@ -64,14 +64,63 @@ async function loadGifts() {
             price.className = 'gift-price';
             price.textContent = formatCurrency(gift.preco);
 
-            const button = document.createElement('a');
-            button.className = 'btn-gift';
-            button.textContent = 'Comprar na loja';
-            button.href = gift.url;
-            button.target = '_blank';
-            button.rel = 'noopener noreferrer';
+            const actions = document.createElement('div');
+            actions.className = 'd-grid gap-2';
 
-            body.append(title, description, price, button);
+            if (gift.disponivel === false) {
+                const unavailable = document.createElement('button');
+
+                unavailable.className = 'btn-gift';
+                unavailable.textContent = 'Presente escolhido';
+                unavailable.disabled = true;
+
+                actions.append(unavailable);
+            } else {
+                const reserveButton = document.createElement('button');
+
+                reserveButton.type = 'button';
+                reserveButton.className = 'btn-gift';
+                reserveButton.textContent = 'Avisar que vou presentear';
+
+                reserveButton.addEventListener('click', () => {
+                    console.log('Botão de presente clicado!');
+
+                    const guestName = prompt('Qual é o seu nome?');
+
+                    if (!guestName || !guestName.trim()) {
+                        return;
+                    }
+
+                    const phone = APP_CONFIG.whatsapp.phone;
+
+                    const message = [
+                        'Olá! Quero presentear no aniversário.',
+                        '',
+                        `Presente: ${gift.nome}`,
+                        `Valor: ${formatCurrency(gift.preco)}`,
+                        `Meu nome: ${guestName.trim()}`
+                    ].join('\n');
+
+                    const whatsappUrl =
+                        `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+                    window.location.href = whatsappUrl;
+                });
+
+                actions.append(reserveButton);
+            }
+
+            const storeButton = document.createElement('a');
+
+            storeButton.className = 'btn btn-outline-secondary';
+            storeButton.textContent = 'Ver produto na loja';
+            storeButton.href = gift.url;
+            storeButton.target = '_blank';
+            storeButton.rel = 'noopener noreferrer';
+
+            actions.append(storeButton);
+
+            body.append(title, description, price, actions);
             card.append(image, body);
             column.append(card);
 

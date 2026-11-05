@@ -13,7 +13,8 @@ const fields = {
     description: document.getElementById('gift-description'),
     price: document.getElementById('gift-price'),
     image: document.getElementById('gift-image'),
-    url: document.getElementById('gift-url')
+    url: document.getElementById('gift-url'),
+    availability: document.getElementById('gift-availability')
 };
 
 function showMessage(text, type = 'success') {
@@ -28,6 +29,7 @@ function hideMessage() {
 function resetForm() {
     form.reset();
     fields.id.value = '';
+    fields.availability.value = 'true';
 
     document.getElementById('form-title').textContent =
         'Adicionar presente';
@@ -99,6 +101,7 @@ function editGift(id) {
     fields.price.value = gift.preco;
     fields.image.value = gift.imagem;
     fields.url.value = gift.url;
+    fields.availability.value = String(gift.disponivel !== false);
 
     document.getElementById('form-title').textContent =
         'Editar presente';
@@ -134,7 +137,7 @@ form.addEventListener('submit', event => {
         preco: Number(fields.price.value),
         imagem: fields.image.value.trim(),
         url: fields.url.value.trim(),
-        disponivel: true
+        disponivel: fields.availability.value === 'true'
     };
 
     if (
