@@ -1,6 +1,6 @@
 const APP_CONFIG = {
     api: {
-        baseUrl: 'http://localhost:8787'
+        baseUrl: 'https://lista-presentes-api.herlandio7.workers.dev'
     },
 
     whatsapp: {
