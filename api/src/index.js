@@ -1,9 +1,3 @@
-import giftsData from '../../data/presentes.json';
-
-const VALID_GIFT_IDS = new Set(
-    giftsData.presentes.map(gift => Number(gift.id))
-);
-
 function generateInviteCode() {
     const random = crypto.randomUUID()
         .replace(/-/g, '')
@@ -36,7 +30,7 @@ function corsHeaders(request, env) {
 
     return {
         'Access-Control-Allow-Origin': origin,
-        'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         'Vary': 'Origin'
     };
@@ -50,6 +44,84 @@ export class ReservationsStore {
 
     async fetch(request) {
         const url = new URL(request.url);
+
+        // Lista pública de presentes.
+        if (request.method === 'GET' && url.pathname === '/gifts') {
+            const gifts = await this.ctx.storage.get('gifts') || {};
+
+            return json(Object.values(gifts));
+        }
+
+        // Lista administrativa de presentes.
+        if (request.method === 'GET' && url.pathname === '/gifts/admin') {
+            const gifts = await this.ctx.storage.get('gifts') || {};
+
+            return json(Object.values(gifts));
+        }
+
+        // Cadastra um novo presente (somente administrador).
+        if (request.method === 'POST' && url.pathname === '/gifts/admin') {
+            let body;
+
+            try {
+                body = await request.json();
+            } catch {
+                return json({ error: 'JSON inválido.' }, 400);
+            }
+
+            const nome = String(body.nome || '').trim();
+            const descricao = String(body.descricao || '').trim();
+            const preco = Number(body.preco);
+            const imagem = String(body.imagem || '').trim();
+            const urlProduto = String(body.url || '').trim();
+
+            if (!nome || nome.length > 150) {
+                return json({ error: 'Nome do presente inválido.' }, 400);
+            }
+
+            if (!Number.isFinite(preco) || preco < 0) {
+                return json({ error: 'Preço inválido.' }, 400);
+            }
+
+            const isValidUrl = value => {
+                try {
+                    return ['http:', 'https:'].includes(new URL(value).protocol);
+                } catch {
+                    return false;
+                }
+            };
+
+            if (!isValidUrl(imagem) || !isValidUrl(urlProduto)) {
+                return json({ error: 'Informe URLs válidas para imagem e produto.' }, 400);
+            }
+
+            const result = await this.ctx.storage.transaction(async txn => {
+                const gifts = await txn.get('gifts') || {};
+                const nextId = await txn.get('nextGiftId') || 1;
+
+                const gift = {
+                    id: nextId,
+                    nome,
+                    descricao,
+                    preco,
+                    imagem,
+                    url: urlProduto,
+                    disponivel: true
+                };
+
+                gifts[nextId] = gift;
+
+                await txn.put('gifts', gifts);
+                await txn.put('nextGiftId', nextId + 1);
+
+                return gift;
+            });
+
+            return json({
+                message: 'Presente cadastrado com sucesso.',
+                gift: result
+            }, 201);
+        }
 
         // Consulta pública: retorna somente os IDs reservados.
         if (request.method === 'GET' && url.pathname === '/') {
@@ -83,7 +155,10 @@ export class ReservationsStore {
                 return json({ error: 'Presente inválido.' }, 400);
             }
 
-            if (!VALID_GIFT_IDS.has(giftId)) {
+            const gifts = await this.ctx.storage.get('gifts') || {};
+            const gift = gifts[giftId];
+
+            if (!gift) {
                 return json({
                     error: 'Este presente não está cadastrado.'
                 }, 404);
@@ -128,6 +203,121 @@ export class ReservationsStore {
             }, 201);
         }
 
+        // Edita um presente (somente administrador).
+        if (
+            request.method === 'PUT' &&
+            /^\/gifts\/admin\/\d+$/.test(url.pathname)
+        ) {
+            const giftId = Number(url.pathname.split('/').pop());
+
+            let body;
+
+            try {
+                body = await request.json();
+            } catch {
+                return json({ error: 'JSON inválido.' }, 400);
+            }
+
+            const nome = String(body.nome || '').trim();
+            const descricao = String(body.descricao || '').trim();
+            const preco = Number(body.preco);
+            const imagem = String(body.imagem || '').trim();
+            const urlProduto = String(body.url || '').trim();
+
+            if (!nome || nome.length > 150) {
+                return json({ error: 'Nome do presente inválido.' }, 400);
+            }
+
+            if (!Number.isFinite(preco) || preco < 0) {
+                return json({ error: 'Preço inválido.' }, 400);
+            }
+
+            const isValidUrl = value => {
+                try {
+                    return ['http:', 'https:'].includes(new URL(value).protocol);
+                } catch {
+                    return false;
+                }
+            };
+
+            if (!isValidUrl(imagem) || !isValidUrl(urlProduto)) {
+                return json({
+                    error: 'Informe URLs válidas para imagem e produto.'
+                }, 400);
+            }
+
+            const result = await this.ctx.storage.transaction(async txn => {
+                const gifts = await txn.get('gifts') || {};
+
+                if (!gifts[giftId]) {
+                    return null;
+                }
+
+                const gift = {
+                    ...gifts[giftId],
+                    nome,
+                    descricao,
+                    preco,
+                    imagem,
+                    url: urlProduto
+                };
+
+                gifts[giftId] = gift;
+
+                await txn.put('gifts', gifts);
+
+                return gift;
+            });
+
+            if (!result) {
+                return json({ error: 'Presente não encontrado.' }, 404);
+            }
+
+            return json({
+                message: 'Presente atualizado com sucesso.',
+                gift: result
+            });
+        }
+
+        // Exclui um presente (somente administrador).
+        if (
+            request.method === 'DELETE' &&
+            /^\/gifts\/admin\/\d+$/.test(url.pathname)
+        ) {
+            const giftId = Number(url.pathname.split('/').pop());
+
+            const result = await this.ctx.storage.transaction(async txn => {
+                const gifts = await txn.get('gifts') || {};
+                const reservations = await txn.get('reservations') || {};
+
+                if (!gifts[giftId]) {
+                    return { notFound: true };
+                }
+
+                if (reservations[giftId]) {
+                    return { hasReservation: true };
+                }
+
+                delete gifts[giftId];
+
+                await txn.put('gifts', gifts);
+
+                return { success: true };
+            });
+
+            if (result.notFound) {
+                return json({ error: 'Presente não encontrado.' }, 404);
+            }
+
+            if (result.hasReservation) {
+                return json({
+                    error: 'Não é possível excluir um presente com reserva ativa.'
+                }, 409);
+            }
+
+            return json({ message: 'Presente excluído com sucesso.' });
+        }
+        
         if (request.method === 'DELETE') {
             const giftId = Number(url.pathname.split('/').pop());
 
@@ -259,6 +449,66 @@ export class ReservationsStore {
                 guest: result
             });
         }
+
+        // Consulta pública dos dados do aniversário.
+        if (request.method === 'GET' && url.pathname === '/settings') {
+            const settings = await this.ctx.storage.get('settings') || {
+                nome: '',
+                data: '',
+                titulo: '',
+                mensagem: ''
+            };
+
+            return json(settings);
+        }
+
+        // Atualiza os dados do aniversário (somente administrador).
+        if (request.method === 'PUT' && url.pathname === '/settings/admin') {
+            let body;
+
+            try {
+                body = await request.json();
+            } catch {
+                return json({ error: 'JSON inválido.' }, 400);
+            }
+
+            const settings = {
+                nome: String(body.nome || '').trim(),
+                data: String(body.data || '').trim(),
+                titulo: String(body.titulo || '').trim(),
+                mensagem: String(body.mensagem || '').trim()
+            };
+
+            if (
+                !settings.nome ||
+                !settings.data ||
+                !settings.titulo ||
+                !settings.mensagem
+            ) {
+                return json({
+                    error: 'Preencha todos os campos do aniversário.'
+                }, 400);
+            }
+
+            if (
+                settings.nome.length > 100 ||
+                settings.titulo.length > 150 ||
+                settings.mensagem.length > 1000 ||
+                !/^\d{4}-\d{2}-\d{2}$/.test(settings.data)
+            ) {
+                return json({
+                    error: 'Dados do aniversário inválidos.'
+                }, 400);
+            }
+
+            await this.ctx.storage.put('settings', settings);
+
+            return json({
+                message: 'Dados do aniversário atualizados.',
+                settings
+            });
+        }
+
         return json({ error: 'Rota não encontrada.' }, 404);
     }
 }
@@ -285,7 +535,9 @@ export default {
 
         if (
             !url.pathname.startsWith('/reservations') &&
-            !url.pathname.startsWith('/guests')
+            !url.pathname.startsWith('/guests') &&
+            !url.pathname.startsWith('/gifts') &&
+            !url.pathname.startsWith('/settings')
         ) {
             return json({ error: 'Rota não encontrada.' }, 404, headers);
         }
@@ -295,11 +547,15 @@ export default {
             (
                 (
                     request.method === 'GET' ||
-                    request.method === 'POST'
+                    request.method === 'POST' ||
+                    request.method === 'PUT'
                 ) &&
                 (
                     url.pathname === '/reservations/admin' ||
-                    url.pathname === '/guests/admin'
+                    url.pathname === '/guests/admin' ||
+                    url.pathname === '/gifts/admin' ||
+                    url.pathname.startsWith('/gifts/admin/') ||
+                    url.pathname === '/settings/admin'
                 )
             )
         ) {

@@ -1,7 +1,7 @@
 
-const DATA_URL = 'data/presentes.json';
-
-let giftData = null;
+let giftData = {
+    presentes: []
+};
 
 const form = document.getElementById('gift-form');
 const giftsList = document.getElementById('gifts-list');
@@ -37,6 +37,39 @@ function resetForm() {
     document.getElementById('cancel-edit').classList.add('d-none');
 }
 
+async function giftApiRequest(path, options = {}) {
+    const token = adminToken.value.trim();
+
+    if (!token) {
+        throw new Error('Informe o token administrativo na seção de reservas.');
+    }
+
+    const response = await fetch(
+        `${APP_CONFIG.api.baseUrl}${path}`,
+        {
+            ...options,
+            headers: {
+                ...(options.headers || {}),
+                Authorization: `Bearer ${token}`
+            }
+        }
+    );
+
+    const data = await response.json();
+
+    if (response.status === 401) {
+        throw new Error('Token administrativo inválido.');
+    }
+
+    if (!response.ok) {
+        throw new Error(
+            data.error || 'Não foi possível realizar a operação.'
+        );
+    }
+
+    return data;
+}
+
 function renderGifts() {
     giftsList.innerHTML = '';
 
@@ -50,6 +83,7 @@ function renderGifts() {
 
     giftData.presentes.forEach(gift => {
         const item = document.createElement('div');
+
         item.className =
             'd-flex flex-wrap justify-content-between align-items-center gap-3 border-bottom py-3';
 
@@ -66,7 +100,14 @@ function renderGifts() {
             currency: 'BRL'
         }).format(gift.preco);
 
-        info.append(name, price);
+        const availability = document.createElement('small');
+        availability.className = 'd-block text-secondary';
+
+        availability.textContent = gift.disponivel
+            ? 'Disponível'
+            : 'Indisponível';
+
+        info.append(name, price, availability);
 
         const actions = document.createElement('div');
         actions.className = 'd-flex gap-2';
@@ -75,12 +116,14 @@ function renderGifts() {
         editButton.type = 'button';
         editButton.className = 'btn btn-sm btn-outline-primary';
         editButton.textContent = 'Editar';
+
         editButton.addEventListener('click', () => editGift(gift.id));
 
         const deleteButton = document.createElement('button');
         deleteButton.type = 'button';
         deleteButton.className = 'btn btn-sm btn-outline-danger';
         deleteButton.textContent = 'Excluir';
+
         deleteButton.addEventListener('click', () => deleteGift(gift.id));
 
         actions.append(editButton, deleteButton);
@@ -91,7 +134,9 @@ function renderGifts() {
 }
 
 function editGift(id) {
-    const gift = giftData.presentes.find(item => item.id === id);
+    const gift = giftData.presentes.find(
+        item => Number(item.id) === Number(id)
+    );
 
     if (!gift) return;
 
@@ -111,23 +156,30 @@ function editGift(id) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function deleteGift(id) {
+async function deleteGift(id) {
     const confirmed = window.confirm(
         'Deseja realmente excluir este presente?'
     );
 
     if (!confirmed) return;
 
-    giftData.presentes = giftData.presentes.filter(
-        gift => gift.id !== id
-    );
+    try {
+        await giftApiRequest(`/gifts/admin/${id}`, {
+            method: 'DELETE'
+        });
 
-    resetForm();
-    renderGifts();
-    showMessage('Presente removido. Baixe o JSON para aplicar a alteração.');
+        resetForm();
+
+        showMessage('Presente excluído com sucesso.');
+
+        await loadAdmin();
+
+    } catch (error) {
+        showMessage(error.message, 'danger');
+    }
 }
 
-form.addEventListener('submit', event => {
+form.addEventListener('submit', async event => {
     event.preventDefault();
     hideMessage();
 
@@ -156,42 +208,56 @@ form.addEventListener('submit', event => {
         const storeUrl = new URL(gift.url);
 
         if (
-            imageUrl.protocol !== 'https:' ||
-            storeUrl.protocol !== 'https:'
+            !['https:', 'http:'].includes(imageUrl.protocol) ||
+            !['https:', 'http:'].includes(storeUrl.protocol)
         ) {
-            throw new Error('Apenas HTTPS é permitido.');
+            throw new Error('Protocolo inválido.');
         }
     } catch {
-        showMessage('Informe URLs HTTPS válidas.', 'danger');
+        showMessage('Informe URLs HTTP ou HTTPS válidas.', 'danger');
         return;
     }
 
     const id = fields.id.value;
+    const submitButton = form.querySelector('[type="submit"]');
 
-    if (id) {
-        const existing = giftData.presentes.find(
-            item => item.id === Number(id)
-        );
+    submitButton.disabled = true;
+    submitButton.textContent = 'Salvando...';
 
-        if (!existing) return;
+    try {
+        if (id) {
+            await giftApiRequest(`/gifts/admin/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(gift)
+            });
 
-        Object.assign(existing, gift);
-    } else {
-        const nextId = giftData.presentes.reduce(
-            (max, item) => Math.max(max, Number(item.id) || 0),
-            0
-        ) + 1;
+            showMessage('Presente atualizado com sucesso.');
+        } else {
+            await giftApiRequest('/gifts/admin', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(gift)
+            });
 
-        giftData.presentes.push({
-            id: nextId,
-            ...gift
-        });
+            showMessage('Presente cadastrado com sucesso.');
+        }
+
+        resetForm();
+
+        await loadAdmin();
+
+    } catch (error) {
+        showMessage(error.message, 'danger');
+
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Salvar presente';
     }
-
-    resetForm();
-    renderGifts();
-
-    showMessage('Presente atualizado! Baixe o JSON para salvar no GitHub.');
 });
 
 document.getElementById('cancel-edit').addEventListener(
@@ -199,41 +265,15 @@ document.getElementById('cancel-edit').addEventListener(
     resetForm
 );
 
-document.getElementById('download-json').addEventListener('click', () => {
-    const json = JSON.stringify(giftData, null, 2);
-
-    const blob = new Blob([json], {
-        type: 'application/json'
-    });
-
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'presentes.json';
-
-    document.body.append(link);
-    link.click();
-    link.remove();
-
-    URL.revokeObjectURL(url);
-
-    showMessage('Arquivo presentes.json gerado com sucesso!');
-});
-
 async function loadAdmin() {
     try {
-        const response = await fetch(DATA_URL);
+        const gifts = await giftApiRequest('/gifts/admin');
 
-        if (!response.ok) {
-            throw new Error('Erro ao carregar os dados.');
+        if (!Array.isArray(gifts)) {
+            throw new Error('Resposta inválida da API.');
         }
 
-        giftData = await response.json();
-
-        if (!Array.isArray(giftData.presentes)) {
-            throw new Error('Estrutura de presentes inválida.');
-        }
+        giftData.presentes = gifts;
 
         renderGifts();
 
@@ -243,7 +283,10 @@ async function loadAdmin() {
     }
 }
 
-loadAdmin();
+document.getElementById('load-reservations').addEventListener(
+    'click',
+    loadAdmin
+);
 
 // ========================================
 // GERENCIAMENTO DE RESERVAS
@@ -618,3 +661,93 @@ guestForm.addEventListener('submit', async event => {
 
 loadGuestsButton.addEventListener('click', fetchGuests);
 
+// ========================================
+// CONFIGURAÇÕES DO ANIVERSÁRIO
+// ========================================
+
+const settingsForm = document.getElementById('settings-form');
+const settingsName = document.getElementById('birthday-name');
+const settingsDate = document.getElementById('birthday-date-input');
+const settingsTitle = document.getElementById('birthday-title-input');
+const settingsMessage = document.getElementById('birthday-message-input');
+const settingsFeedback = document.getElementById('settings-message');
+const saveSettingsButton = document.getElementById('save-settings');
+
+function showSettingsMessage(message, type = 'success') {
+    settingsFeedback.innerHTML = `
+        <div class="alert alert-${type} mb-0" role="alert">
+            ${message}
+        </div>
+    `;
+}
+
+async function loadSettings() {
+    try {
+        const response = await fetch(
+            `${APP_CONFIG.api.baseUrl}/settings`
+        );
+
+        const settings = await response.json();
+
+        if (!response.ok) {
+            throw new Error('Não foi possível carregar as configurações.');
+        }
+
+        settingsName.value = settings.nome || '';
+        settingsDate.value = settings.data || '';
+        settingsTitle.value = settings.titulo || '';
+        settingsMessage.value = settings.mensagem || '';
+
+    } catch (error) {
+        showSettingsMessage(error.message, 'danger');
+    }
+}
+
+settingsForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+
+    const token = adminToken.value.trim();
+
+    if (!token) {
+        showSettingsMessage('Informe o token administrativo.', 'warning');
+        return;
+    }
+
+    saveSettingsButton.disabled = true;
+    saveSettingsButton.textContent = 'Salvando...';
+
+    try {
+        const response = await fetch(
+            `${APP_CONFIG.api.baseUrl}/settings/admin`,
+            {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    nome: settingsName.value.trim(),
+                    data: settingsDate.value,
+                    titulo: settingsTitle.value.trim(),
+                    mensagem: settingsMessage.value.trim()
+                })
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || 'Não foi possível salvar as configurações.');
+        }
+
+        showSettingsMessage('Configurações salvas com sucesso!');
+
+    } catch (error) {
+        showSettingsMessage(error.message, 'danger');
+    } finally {
+        saveSettingsButton.disabled = false;
+        saveSettingsButton.textContent = 'Salvar configurações';
+    }
+});
+
+loadSettings();

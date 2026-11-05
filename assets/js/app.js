@@ -17,29 +17,38 @@ async function loadGifts() {
     const container = document.getElementById('gifts-container');
 
     try {
-        const [response, reservedIds] = await Promise.all([
-            fetch('data/presentes.json'),
-            ReservationService.getReservedGiftIds()
-        ]);
+        const [giftsResponse, settingsResponse, reservedIds] =
+            await Promise.all([
+                fetch(`${APP_CONFIG.api.baseUrl}/gifts`),
+                fetch(`${APP_CONFIG.api.baseUrl}/settings`),
+                ReservationService.getReservedGiftIds()
+            ]);
 
-        if (!response.ok) {
-            throw new Error('Não foi possível carregar a lista.');
+        if (!giftsResponse.ok || !settingsResponse.ok) {
+            throw new Error('Não foi possível carregar os dados da lista.');
         }
 
-        const data = await response.json();
+        const gifts = await giftsResponse.json();
+        const settings = await settingsResponse.json();
 
         document.getElementById('birthday-title').textContent =
-            data.aniversariante.titulo;
+            settings.titulo || 'Minha lista de presentes';
+
+        document.getElementById('birthday-name').textContent =
+        settings.nome ? `Aniversário de ${settings.nome}` : '';
 
         document.getElementById('birthday-message').textContent =
-            data.aniversariante.mensagem;
+            settings.mensagem || 'Sua presença já é um presente!';
 
         document.getElementById('birthday-date').textContent =
-            formatDate(data.aniversariante.data);
+            settings.data ? formatDate(settings.data) : 'Meu aniversário';
+
+        document.title =
+            settings.titulo || 'Minha lista de presentes';
 
         container.innerHTML = '';
 
-        data.presentes.forEach(gift => {
+        gifts.forEach(gift => {
             const column = document.createElement('div');
             column.className = 'col-12 col-sm-6 col-lg-4';
 
