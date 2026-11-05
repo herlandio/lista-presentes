@@ -1,3 +1,9 @@
+import giftsData from '../../data/presentes.json';
+
+const VALID_GIFT_IDS = new Set(
+    giftsData.presentes.map(gift => Number(gift.id))
+);
+
 function json(data, status = 200, headers = {}) {
     return new Response(JSON.stringify(data), {
         status,
@@ -68,6 +74,12 @@ export class ReservationsStore {
                 return json({ error: 'Presente inválido.' }, 400);
             }
 
+            if (!VALID_GIFT_IDS.has(giftId)) {
+                return json({
+                    error: 'Este presente não está cadastrado.'
+                }, 404);
+            }
+
             if (!guestName || guestName.length > 100) {
                 return json({ error: 'Nome inválido.' }, 400);
             }
@@ -107,10 +119,7 @@ export class ReservationsStore {
             }, 201);
         }
 
-        if (
-            request.method === 'DELETE' ||
-            (request.method === 'GET' && url.pathname === '/admin')
-        ) {
+        if (request.method === 'DELETE') {
             const giftId = Number(url.pathname.split('/').pop());
 
             if (!Number.isInteger(giftId) || giftId <= 0) {
@@ -168,7 +177,13 @@ export default {
             return json({ error: 'Rota não encontrada.' }, 404, headers);
         }
 
-        if (request.method === 'DELETE') {
+        if (
+            request.method === 'DELETE' ||
+            (
+                request.method === 'GET' &&
+                url.pathname === '/reservations/admin'
+            )
+        ) {
             const authorization = request.headers.get('Authorization');
             const expected = `Bearer ${env.ADMIN_TOKEN}`;
 
