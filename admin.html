@@ -1,0 +1,169 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Gerenciar presentes</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <main class="container py-5">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="h3">Gerenciar presentes</h1>
+                <p class="text-secondary mb-0">
+                    Administração da lista de aniversário
+                </p>
+            </div>
+
+            <a href="index.html" class="btn btn-outline-secondary">
+                Ver lista
+            </a>
+        </div>
+
+        <div id="admin-message" class="alert d-none" role="alert"></div>
+
+        <section class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+
+                <h2 class="h5 mb-4" id="form-title">
+                    Adicionar presente
+                </h2>
+
+                <form id="gift-form">
+
+                    <input type="hidden" id="gift-id">
+
+                    <div class="mb-3">
+                        <label for="gift-name" class="form-label">
+                            Nome do presente
+                        </label>
+
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="gift-name"
+                            required
+                        >
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="gift-description" class="form-label">
+                            Descrição
+                        </label>
+
+                        <textarea
+                            class="form-control"
+                            id="gift-description"
+                            rows="2"
+                        ></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="gift-price" class="form-label">
+                                Preço
+                            </label>
+
+                            <input
+                                type="number"
+                                class="form-control"
+                                id="gift-price"
+                                min="0"
+                                step="0.01"
+                                required
+                            >
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label for="gift-image" class="form-label">
+                                URL da imagem
+                            </label>
+
+                            <input
+                                type="url"
+                                class="form-control"
+                                id="gift-image"
+                                placeholder="https://..."
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="gift-url" class="form-label">
+                            Link da loja
+                        </label>
+
+                        <input
+                            type="url"
+                            class="form-control"
+                            id="gift-url"
+                            placeholder="https://..."
+                            required
+                        >
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            Salvar presente
+                        </button>
+
+                        <button
+                            type="button"
+                            id="cancel-edit"
+                            class="btn btn-outline-secondary d-none"
+                        >
+                            Cancelar edição
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </section>
+
+        <section class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="h5 mb-0">Presentes cadastrados</h2>
+
+                    <span id="gift-count" class="badge text-bg-secondary">
+                        0 presentes
+                    </span>
+                </div>
+
+                <div id="gifts-list">
+                    Carregando presentes...
+                </div>
+
+                <hr class="my-4">
+
+                <button id="download-json" class="btn btn-success">
+                    Baixar presentes.json atualizado
+                </button>
+
+                <p class="small text-secondary mt-2 mb-0">
+                    Após baixar, substitua o arquivo data/presentes.json
+                    no GitHub.
+                </p>
+
+            </div>
+        </section>
+
+    </main>
+
+    <script src="assets/js/admin.js"></script>
+
+</body>
+</html>
