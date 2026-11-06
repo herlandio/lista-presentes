@@ -26,48 +26,92 @@
                 </p>
             </div>
 
-            <a href="index.html" class="btn btn-outline-secondary">
-                Ver lista
-            </a>
-        </div>
-
-        <div id="admin-message" class="alert d-none" role="alert"></div>
-        <section class="card border-0 shadow-sm mb-4">
-            <div class="card-body p-4">
-
-                <h2 class="h5 mb-3">Reservas realizadas</h2>
-
-                <div class="mb-3">
-                    <label for="admin-token" class="form-label">
-                        Token administrativo
-                    </label>
-
-                    <input
-                        type="password"
-                        class="form-control"
-                        id="admin-token"
-                        placeholder="Informe seu token administrativo"
-                        autocomplete="off"
-                    >
-                </div>
+            <div class="d-flex gap-2">
+                <a href="index.html" class="btn btn-outline-secondary">
+                    Ver lista
+                </a>
 
                 <button
                     type="button"
-                    id="load-reservations"
-                    class="btn btn-primary"
+                    id="admin-logout"
+                    class="btn btn-outline-danger d-none"
                 >
-                    Consultar reservas
+                    Sair
                 </button>
+            </div>
+        </div>
+
+        <!-- ACESSO ADMINISTRATIVO -->
+        <section id="admin-access" class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+
+                <h2 class="h5 mb-3">Acesso administrativo</h2>
+
+                <p class="text-secondary">
+                    Informe o token administrativo para liberar o painel.
+                </p>
+
+                <form id="admin-access-form">
+
+                    <div class="mb-3">
+                        <label for="admin-token" class="form-label">
+                            Token administrativo
+                        </label>
+
+                        <input
+                            type="password"
+                            class="form-control"
+                            id="admin-token"
+                            placeholder="Informe seu token administrativo"
+                            autocomplete="off"
+                            required
+                        >
+                    </div>
+
+                    <button
+                        type="submit"
+                        id="admin-access-submit"
+                        class="btn btn-primary"
+                    >
+                        Acessar painel
+                    </button>
+
+                </form>
+
+                <div id="admin-access-message" class="mt-3"></div>
+
+            </div>
+        </section>
+
+        <div id="admin-content" class="d-none">
+
+        <div id="admin-message" class="alert d-none" role="alert"></div>
+
+        <section class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h2 class="h5 mb-0">Reservas realizadas</h2>
+
+                    <button
+                        type="button"
+                        id="load-reservations"
+                        class="btn btn-outline-primary btn-sm"
+                    >
+                        Atualizar reservas
+                    </button>
+                </div>
 
                 <div id="reservations-message" class="mt-3"></div>
 
                 <div id="reservations-list" class="mt-3">
-                    Informe o token para consultar as reservas.
+                    Nenhuma reserva carregada.
                 </div>
 
             </div>
         </section>
-                <!-- GERENCIAMENTO DE CONVIDADOS -->
+
+        <!-- GERENCIAMENTO DE CONVIDADOS -->
         <section class="card border-0 shadow-sm mb-4">
             <div class="card-body p-4">
 
@@ -318,6 +362,8 @@
 
             </div>
         </section>
+
+        </div>
 
     </main>
 

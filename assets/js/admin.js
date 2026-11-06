@@ -297,6 +297,13 @@ const loadReservationsButton = document.getElementById('load-reservations');
 const reservationsList = document.getElementById('reservations-list');
 const reservationsMessage = document.getElementById('reservations-message');
 
+const adminAccessSection = document.getElementById('admin-access');
+const adminAccessForm = document.getElementById('admin-access-form');
+const adminAccessMessage = document.getElementById('admin-access-message');
+const adminAccessSubmit = document.getElementById('admin-access-submit');
+const adminContentView = document.getElementById('admin-content');
+const adminLogoutButton = document.getElementById('admin-logout');
+
 function showReservationMessage(text, type = 'success') {
     reservationsMessage.textContent = text;
     reservationsMessage.className = `alert alert-${type} mt-3`;
@@ -353,7 +360,7 @@ async function fetchReservations() {
 
     } finally {
         loadReservationsButton.disabled = false;
-        loadReservationsButton.textContent = 'Consultar reservas';
+        loadReservationsButton.textContent = 'Atualizar reservas';
     }
 }
 
@@ -514,9 +521,13 @@ async function fetchGuests() {
 
         renderGuests(guests);
 
+        return true;
+
     } catch (error) {
         guestsList.textContent = '';
         showGuestMessage(error.message, 'danger');
+
+        return false;
 
     } finally {
         loadGuestsButton.disabled = false;
@@ -590,9 +601,53 @@ function renderGuests(guests) {
             updated.textContent = 'Aguardando resposta.';
         }
 
-        item.append(header, updated);
+        const actions = document.createElement('div');
+        actions.className = 'd-flex justify-content-end mt-2';
+
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'btn btn-sm btn-outline-danger';
+        deleteButton.textContent = 'Excluir convidado';
+
+        deleteButton.addEventListener('click', () => {
+            deleteGuest(guest.id, deleteButton);
+        });
+
+        actions.append(deleteButton);
+
+        item.append(header, updated, actions);
         guestsList.append(item);
     });
+}
+
+async function deleteGuest(guestId, button) {
+    const confirmed = window.confirm(
+        'Deseja realmente excluir este convidado?'
+    );
+
+    if (!confirmed) return;
+
+    button.disabled = true;
+    button.textContent = 'Excluindo...';
+
+    try {
+        await guestApiRequest(
+            `/guests/admin/${encodeURIComponent(guestId)}`,
+            { method: 'DELETE' }
+        );
+
+        const updated = await fetchGuests();
+
+        if (updated) {
+            showGuestMessage('Convidado excluído com sucesso.');
+        }
+
+    } catch (error) {
+        button.disabled = false;
+        button.textContent = 'Excluir convidado';
+
+        showGuestMessage(error.message, 'danger');
+    }
 }
 
 loadGuestsButton.addEventListener('click', fetchGuests);
@@ -686,4 +741,137 @@ settingsForm.addEventListener('submit', async (event) => {
     }
 });
 
-loadSettings();
+function showAccessMessage(text, type = 'success') {
+    adminAccessMessage.textContent = text;
+    adminAccessMessage.className = `alert alert-${type} mt-3`;
+}
+
+function clearAccessMessage() {
+    adminAccessMessage.textContent = '';
+    adminAccessMessage.className = 'mt-3';
+}
+
+const ADMIN_TOKEN_COOKIE = 'lista_presentes_admin_token';
+
+function setCookie(name, value) {
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+
+    document.cookie =
+        `${name}=${encodeURIComponent(value)}; path=/; SameSite=Strict${secure}`;
+}
+
+function getCookie(name) {
+    const prefix = `${name}=`;
+
+    const entry = document.cookie
+        .split('; ')
+        .find(item => item.startsWith(prefix));
+
+    return entry ? decodeURIComponent(entry.slice(prefix.length)) : null;
+}
+
+function deleteCookie(name) {
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+
+    document.cookie =
+        `${name}=; path=/; max-age=0; SameSite=Strict${secure}`;
+}
+
+async function loadAdminContent() {
+    await loadAdmin();
+
+    await Promise.all([
+        fetchReservations(),
+        fetchGuests(),
+        loadSettings()
+    ]);
+}
+
+async function enterAdmin(token) {
+    clearAccessMessage();
+
+    adminAccessSubmit.disabled = true;
+    adminAccessSubmit.textContent = 'Validando...';
+
+    try {
+        const response = await fetch(
+            `${APP_CONFIG.api.baseUrl}/reservations/admin`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        if (response.status === 401) {
+            throw new Error('Token administrativo inválido.');
+        }
+
+        if (!response.ok) {
+            throw new Error('Não foi possível validar o token.');
+        }
+
+        setCookie(ADMIN_TOKEN_COOKIE, token);
+
+        adminAccessSection.classList.add('d-none');
+        adminContentView.classList.remove('d-none');
+        adminLogoutButton.classList.remove('d-none');
+
+        await loadAdminContent();
+
+    } catch (error) {
+        deleteCookie(ADMIN_TOKEN_COOKIE);
+
+        adminAccessSection.classList.remove('d-none');
+        adminContentView.classList.add('d-none');
+        adminLogoutButton.classList.add('d-none');
+
+        showAccessMessage(error.message, 'danger');
+
+    } finally {
+        adminAccessSubmit.disabled = false;
+        adminAccessSubmit.textContent = 'Acessar painel';
+    }
+}
+
+adminAccessForm.addEventListener('submit', async event => {
+    event.preventDefault();
+
+    const token = adminToken.value.trim();
+
+    if (!token) {
+        showAccessMessage('Informe o token administrativo.', 'warning');
+        return;
+    }
+
+    await enterAdmin(token);
+});
+
+adminLogoutButton.addEventListener('click', () => {
+    deleteCookie(ADMIN_TOKEN_COOKIE);
+
+    adminAccessForm.reset();
+    clearAccessMessage();
+
+    adminAccessSection.classList.remove('d-none');
+    adminContentView.classList.add('d-none');
+    adminLogoutButton.classList.add('d-none');
+
+    giftData.presentes = [];
+
+    giftsList.innerHTML = 'Carregando presentes...';
+    reservationsList.textContent = 'Nenhuma reserva carregada.';
+    guestsList.textContent = 'Nenhum convidado carregado.';
+
+    document.getElementById('guest-confirmed-count').textContent = '0';
+    document.getElementById('guest-declined-count').textContent = '0';
+    document.getElementById('guest-pending-count').textContent = '0';
+});
+
+const storedAdminToken = getCookie(ADMIN_TOKEN_COOKIE);
+
+if (storedAdminToken) {
+    adminToken.value = storedAdminToken;
+
+    enterAdmin(storedAdminToken);
+}

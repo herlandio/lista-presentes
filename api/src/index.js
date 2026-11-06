@@ -324,7 +324,10 @@ export class ReservationsStore {
             return json({ message: 'Presente excluído com sucesso.' });
         }
         
-        if (request.method === 'DELETE') {
+        if (
+            request.method === 'DELETE' &&
+            /^\/[^/]+$/.test(url.pathname)
+        ) {
             const reservationId = decodeURIComponent(
                 url.pathname.split('/').pop()
             );
@@ -360,7 +363,12 @@ export class ReservationsStore {
         if (request.method === 'GET' && url.pathname === '/guests/admin') {
             const guests = await this.ctx.storage.get('guests') || {};
 
-            return json(Object.values(guests));
+            return json(
+                Object.entries(guests).map(([id, guest]) => ({
+                    id,
+                    ...guest
+                }))
+            );
         }
 
         // Cadastra um novo convidado.
@@ -403,6 +411,36 @@ export class ReservationsStore {
                 message: 'Convidado cadastrado com sucesso.',
                 guest
             }, 201);
+        }
+
+        // Exclui um convidado (somente administrador).
+        if (
+            request.method === 'DELETE' &&
+            /^\/guests\/admin\/.+$/.test(url.pathname)
+        ) {
+            const guestId = decodeURIComponent(url.pathname.split('/').pop());
+
+            const result = await this.ctx.storage.transaction(
+                async (txn) => {
+                    const guests = await txn.get('guests') || {};
+
+                    if (!guests[guestId]) {
+                        return false;
+                    }
+
+                    delete guests[guestId];
+
+                    await txn.put('guests', guests);
+
+                    return true;
+                }
+            );
+
+            if (!result) {
+                return json({ error: 'Convidado não encontrado.' }, 404);
+            }
+
+            return json({ message: 'Convidado excluído com sucesso.' });
         }
 
         // Confirmação pública de presença pelo nome.
