@@ -6,6 +6,10 @@ let giftData = {
 const form = document.getElementById('gift-form');
 const giftsList = document.getElementById('gifts-list');
 const message = document.getElementById('admin-message');
+const addGiftButton = document.getElementById('add-gift-button');
+const giftFormMessage = document.getElementById('gift-form-message');
+const giftModalElement = document.getElementById('gift-modal');
+const giftModal = new bootstrap.Modal(giftModalElement);
 
 const fields = {
     id: document.getElementById('gift-id'),
@@ -26,16 +30,37 @@ function hideMessage() {
     message.className = 'alert d-none';
 }
 
+function showGiftFormMessage(text, type = 'danger') {
+    giftFormMessage.textContent = text;
+    giftFormMessage.className = `alert alert-${type} mt-3`;
+}
+
+function hideGiftFormMessage() {
+    giftFormMessage.textContent = '';
+    giftFormMessage.className = 'alert d-none mt-3';
+}
+
 function resetForm() {
     form.reset();
     fields.id.value = '';
     fields.availability.value = 'true';
 
-    document.getElementById('form-title').textContent =
+    document.getElementById('gift-modal-title').textContent =
         'Adicionar presente';
 
     document.getElementById('cancel-edit').classList.add('d-none');
+
+    hideGiftFormMessage();
 }
+
+addGiftButton.addEventListener('click', () => {
+    resetForm();
+    giftModal.show();
+});
+
+giftModalElement.addEventListener('hidden.bs.modal', () => {
+    resetForm();
+});
 
 async function giftApiRequest(path, options = {}) {
     const token = adminToken.value.trim();
@@ -148,12 +173,14 @@ function editGift(id) {
     fields.url.value = gift.url;
     fields.availability.value = String(gift.disponivel !== false);
 
-    document.getElementById('form-title').textContent =
+    document.getElementById('gift-modal-title').textContent =
         'Editar presente';
 
     document.getElementById('cancel-edit').classList.remove('d-none');
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    hideGiftFormMessage();
+
+    giftModal.show();
 }
 
 async function deleteGift(id) {
@@ -182,6 +209,7 @@ async function deleteGift(id) {
 form.addEventListener('submit', async event => {
     event.preventDefault();
     hideMessage();
+    hideGiftFormMessage();
 
     const gift = {
         nome: fields.name.value.trim(),
@@ -199,7 +227,7 @@ form.addEventListener('submit', async event => {
         !gift.imagem ||
         !gift.url
     ) {
-        showMessage('Confira os dados do presente.', 'danger');
+        showGiftFormMessage('Confira os dados do presente.');
         return;
     }
 
@@ -214,7 +242,7 @@ form.addEventListener('submit', async event => {
             throw new Error('Protocolo inválido.');
         }
     } catch {
-        showMessage('Informe URLs HTTP ou HTTPS válidas.', 'danger');
+        showGiftFormMessage('Informe URLs HTTP ou HTTPS válidas.');
         return;
     }
 
@@ -233,8 +261,6 @@ form.addEventListener('submit', async event => {
                 },
                 body: JSON.stringify(gift)
             });
-
-            showMessage('Presente atualizado com sucesso.');
         } else {
             await giftApiRequest('/gifts/admin', {
                 method: 'POST',
@@ -243,16 +269,22 @@ form.addEventListener('submit', async event => {
                 },
                 body: JSON.stringify(gift)
             });
-
-            showMessage('Presente cadastrado com sucesso.');
         }
+
+        giftModal.hide();
 
         resetForm();
 
         await loadAdmin();
 
+        showMessage(
+            id
+                ? 'Presente atualizado com sucesso.'
+                : 'Presente cadastrado com sucesso.'
+        );
+
     } catch (error) {
-        showMessage(error.message, 'danger');
+        showGiftFormMessage(error.message);
 
     } finally {
         submitButton.disabled = false;
@@ -262,7 +294,7 @@ form.addEventListener('submit', async event => {
 
 document.getElementById('cancel-edit').addEventListener(
     'click',
-    resetForm
+    () => giftModal.hide()
 );
 
 async function loadAdmin() {
@@ -466,6 +498,14 @@ loadReservationsButton.addEventListener('click', fetchReservations);
 const loadGuestsButton = document.getElementById('load-guests');
 const guestsList = document.getElementById('guests-list');
 const guestMessage = document.getElementById('guest-message');
+const guestTotalCount = document.getElementById('guest-total-count');
+const guestConfirmedCount = document.getElementById('guest-confirmed-count');
+const guestDeclinedCount = document.getElementById('guest-declined-count');
+const guestPendingCount = document.getElementById('guest-pending-count');
+const guestSearchInput = document.getElementById('guest-search');
+const guestStatusFilter = document.getElementById('guest-status-filter');
+
+let guestData = [];
 
 function showGuestMessage(text, type = 'success') {
     guestMessage.textContent = text;
@@ -519,7 +559,9 @@ async function fetchGuests() {
     try {
         const guests = await guestApiRequest('/guests/admin');
 
-        renderGuests(guests);
+        guestData = guests;
+
+        renderGuests();
 
         return true;
 
@@ -535,8 +577,15 @@ async function fetchGuests() {
     }
 }
 
-function renderGuests(guests) {
-    guestsList.innerHTML = '';
+function normalizeGuestName(value) {
+    return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+}
+
+function renderGuests() {
+    const guests = guestData;
 
     const confirmed = guests.filter(
         guest => guest.status === 'confirmed'
@@ -550,23 +599,47 @@ function renderGuests(guests) {
         guest => guest.status === 'pending'
     ).length;
 
-    document.getElementById('guest-confirmed-count').textContent = confirmed;
-    document.getElementById('guest-declined-count').textContent = declined;
-    document.getElementById('guest-pending-count').textContent = pending;
+    guestTotalCount.textContent = guests.length;
+    guestConfirmedCount.textContent = confirmed;
+    guestDeclinedCount.textContent = declined;
+    guestPendingCount.textContent = pending;
+
+    guestsList.innerHTML = '';
 
     if (guests.length === 0) {
         guestsList.textContent = 'Nenhum convidado cadastrado.';
         return;
     }
 
-    guests.forEach(guest => {
+    const searchTerm = normalizeGuestName(guestSearchInput.value.trim());
+    const statusFilter = guestStatusFilter.value;
+
+    const filteredGuests = guests.filter(guest => {
+        const matchesSearch =
+            !searchTerm ||
+            normalizeGuestName(guest.name).includes(searchTerm);
+
+        const matchesStatus =
+            statusFilter === 'all' || guest.status === statusFilter;
+
+        return matchesSearch && matchesStatus;
+    });
+
+    if (filteredGuests.length === 0) {
+        guestsList.textContent = 'Nenhum convidado encontrado.';
+        return;
+    }
+
+    filteredGuests.forEach(guest => {
         const item = document.createElement('div');
-        item.className = 'border rounded p-3 mb-3';
+        item.className = 'border rounded p-3';
 
         const header = document.createElement('div');
-        header.className = 'd-flex flex-wrap justify-content-between gap-2';
+        header.className =
+            'd-flex flex-wrap justify-content-between align-items-start gap-2';
 
         const name = document.createElement('strong');
+        name.className = 'fs-6';
         name.textContent = guest.name;
 
         const status = document.createElement('span');
@@ -592,7 +665,7 @@ function renderGuests(guests) {
         header.append(name, status);
 
         const updated = document.createElement('small');
-        updated.className = 'd-block text-secondary mt-2';
+        updated.className = 'd-block text-secondary mt-1';
 
         if (guest.updatedAt) {
             updated.textContent =
@@ -607,7 +680,7 @@ function renderGuests(guests) {
         const deleteButton = document.createElement('button');
         deleteButton.type = 'button';
         deleteButton.className = 'btn btn-sm btn-outline-danger';
-        deleteButton.textContent = 'Excluir convidado';
+        deleteButton.textContent = 'Excluir';
 
         deleteButton.addEventListener('click', () => {
             deleteGuest(guest.id, deleteButton);
@@ -644,13 +717,16 @@ async function deleteGuest(guestId, button) {
 
     } catch (error) {
         button.disabled = false;
-        button.textContent = 'Excluir convidado';
+        button.textContent = 'Excluir';
 
         showGuestMessage(error.message, 'danger');
     }
 }
 
 loadGuestsButton.addEventListener('click', fetchGuests);
+
+guestSearchInput.addEventListener('input', renderGuests);
+guestStatusFilter.addEventListener('change', renderGuests);
 
 // ========================================
 // CONFIGURAÇÕES DO ANIVERSÁRIO
@@ -663,14 +739,30 @@ const settingsTitle = document.getElementById('birthday-title-input');
 const settingsMessage = document.getElementById('birthday-message-input');
 const settingsFeedback = document.getElementById('settings-message');
 const saveSettingsButton = document.getElementById('save-settings');
+const openSettingsButton = document.getElementById('open-settings-button');
+const settingsFormMessage = document.getElementById('settings-form-message');
+const settingsModalElement = document.getElementById('settings-modal');
+const settingsModal = new bootstrap.Modal(settingsModalElement);
 
 function showSettingsMessage(message, type = 'success') {
-    settingsFeedback.innerHTML = `
-        <div class="alert alert-${type} mb-0" role="alert">
-            ${message}
-        </div>
-    `;
+    settingsFeedback.textContent = message;
+    settingsFeedback.className = `alert alert-${type} mb-0`;
 }
+
+function showSettingsFormMessage(message, type = 'danger') {
+    settingsFormMessage.textContent = message;
+    settingsFormMessage.className = `alert alert-${type} mt-3`;
+}
+
+function hideSettingsFormMessage() {
+    settingsFormMessage.textContent = '';
+    settingsFormMessage.className = 'alert d-none mt-3';
+}
+
+openSettingsButton.addEventListener('click', () => {
+    hideSettingsFormMessage();
+    settingsModal.show();
+});
 
 async function loadSettings() {
     try {
@@ -700,9 +792,11 @@ settingsForm.addEventListener('submit', async (event) => {
     const token = adminToken.value.trim();
 
     if (!token) {
-        showSettingsMessage('Informe o token administrativo.', 'warning');
+        showSettingsFormMessage('Informe o token administrativo.', 'warning');
         return;
     }
+
+    hideSettingsFormMessage();
 
     saveSettingsButton.disabled = true;
     saveSettingsButton.textContent = 'Salvando...';
@@ -731,10 +825,12 @@ settingsForm.addEventListener('submit', async (event) => {
             throw new Error(result.error || 'Não foi possível salvar as configurações.');
         }
 
+        settingsModal.hide();
+
         showSettingsMessage('Configurações salvas com sucesso!');
 
     } catch (error) {
-        showSettingsMessage(error.message, 'danger');
+        showSettingsFormMessage(error.message);
     } finally {
         saveSettingsButton.disabled = false;
         saveSettingsButton.textContent = 'Salvar configurações';
@@ -861,11 +957,16 @@ adminLogoutButton.addEventListener('click', () => {
 
     giftsList.innerHTML = 'Carregando presentes...';
     reservationsList.textContent = 'Nenhuma reserva carregada.';
+
+    guestData = [];
+    guestSearchInput.value = '';
+    guestStatusFilter.value = 'all';
     guestsList.textContent = 'Nenhum convidado carregado.';
 
-    document.getElementById('guest-confirmed-count').textContent = '0';
-    document.getElementById('guest-declined-count').textContent = '0';
-    document.getElementById('guest-pending-count').textContent = '0';
+    guestTotalCount.textContent = '0';
+    guestConfirmedCount.textContent = '0';
+    guestDeclinedCount.textContent = '0';
+    guestPendingCount.textContent = '0';
 });
 
 const storedAdminToken = getCookie(ADMIN_TOKEN_COOKIE);

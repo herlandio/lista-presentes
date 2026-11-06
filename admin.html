@@ -115,31 +115,8 @@
         <section class="card border-0 shadow-sm mb-4">
             <div class="card-body p-4">
 
-                <h2 class="h5 mb-3">Confirmação de presença</h2>
-
-                <div id="guest-message" class="mt-3"></div>
-
-                <hr>
-
-                <div class="d-flex flex-wrap gap-3 mb-4">
-                    <div class="border rounded p-3 flex-fill">
-                        <div class="small text-secondary">Confirmados</div>
-                        <strong id="guest-confirmed-count">0</strong>
-                    </div>
-
-                    <div class="border rounded p-3 flex-fill">
-                        <div class="small text-secondary">Recusados</div>
-                        <strong id="guest-declined-count">0</strong>
-                    </div>
-
-                    <div class="border rounded p-3 flex-fill">
-                        <div class="small text-secondary">Pendentes</div>
-                        <strong id="guest-pending-count">0</strong>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h3 class="h6 mb-0">Convidados cadastrados</h3>
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+                    <h2 class="h5 mb-0">Confirmação de presença</h2>
 
                     <button
                         type="button"
@@ -150,8 +127,68 @@
                     </button>
                 </div>
 
-                <div id="guests-list">
-                    Informe o token administrativo para consultar os convidados.
+                <div id="guest-message" class="mt-3"></div>
+
+                <div class="row g-2 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-3 h-100">
+                            <div class="small text-secondary">Total</div>
+                            <strong id="guest-total-count" class="fs-4">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-3 h-100">
+                            <div class="small text-secondary">Confirmados</div>
+                            <strong id="guest-confirmed-count" class="fs-4 text-success">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-3 h-100">
+                            <div class="small text-secondary">Recusados</div>
+                            <strong id="guest-declined-count" class="fs-4 text-danger">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <div class="border rounded p-3 h-100">
+                            <div class="small text-secondary">Pendentes</div>
+                            <strong id="guest-pending-count" class="fs-4 text-secondary">0</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-md-7">
+                        <label for="guest-search" class="visually-hidden">
+                            Buscar convidado
+                        </label>
+
+                        <input
+                            type="search"
+                            class="form-control"
+                            id="guest-search"
+                            placeholder="Buscar por nome..."
+                        >
+                    </div>
+
+                    <div class="col-md-5">
+                        <label for="guest-status-filter" class="visually-hidden">
+                            Filtrar por status
+                        </label>
+
+                        <select class="form-select" id="guest-status-filter">
+                            <option value="all">Todos os status</option>
+                            <option value="confirmed">Confirmados</option>
+                            <option value="declined">Não comparecerão</option>
+                            <option value="pending">Pendentes</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="guests-list" class="d-flex flex-column gap-2">
+                    Nenhum convidado carregado.
                 </div>
 
             </div>
@@ -161,199 +198,150 @@
         <section class="card border-0 shadow-sm mb-4">
             <div class="card-body p-4">
 
-                <h2 class="h5 mb-3">Configurações do aniversário</h2>
-
-                <form id="settings-form">
-
-                    <div class="mb-3">
-                        <label for="birthday-name" class="form-label">
-                            Nome do aniversariante
-                        </label>
-
-                        <input
-                            type="text"
-                            class="form-control"
-                            id="birthday-name"
-                            maxlength="100"
-                            required
-                        >
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="birthday-date-input" class="form-label">
-                            Data do aniversário
-                        </label>
-
-                        <input
-                            type="date"
-                            class="form-control"
-                            id="birthday-date-input"
-                            required
-                        >
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="birthday-title-input" class="form-label">
-                            Título da página
-                        </label>
-
-                        <input
-                            type="text"
-                            class="form-control"
-                            id="birthday-title-input"
-                            maxlength="150"
-                            required
-                        >
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="birthday-message-input" class="form-label">
-                            Mensagem de apresentação
-                        </label>
-
-                        <textarea
-                            class="form-control"
-                            id="birthday-message-input"
-                            rows="3"
-                            maxlength="500"
-                            required
-                        ></textarea>
-                    </div>
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <h2 class="h5 mb-0">Configurações do aniversário</h2>
 
                     <button
-                        type="submit"
-                        id="save-settings"
+                        type="button"
+                        id="open-settings-button"
                         class="btn btn-primary"
                     >
-                        Salvar configurações
+                        Editar configurações
                     </button>
-
-                </form>
+                </div>
 
                 <div id="settings-message" class="mt-3"></div>
 
             </div>
         </section>
 
-        <section class="card border-0 shadow-sm mb-4">
-            <div class="card-body p-4">
+        <div
+            class="modal fade"
+            id="settings-modal"
+            tabindex="-1"
+            aria-labelledby="settings-modal-title"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
 
-                <h2 class="h5 mb-4" id="form-title">
-                    Adicionar presente
-                </h2>
-
-                <form id="gift-form">
-
-                    <input type="hidden" id="gift-id">
-
-                    <div class="mb-3">
-                        <label for="gift-name" class="form-label">
-                            Nome do presente
-                        </label>
-
-                        <input
-                            type="text"
-                            class="form-control"
-                            id="gift-name"
-                            required
-                        >
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="gift-description" class="form-label">
-                            Descrição
-                        </label>
-
-                        <textarea
-                            class="form-control"
-                            id="gift-description"
-                            rows="2"
-                        ></textarea>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="gift-price" class="form-label">
-                                Preço
-                            </label>
-
-                            <input
-                                type="number"
-                                class="form-control"
-                                id="gift-price"
-                                min="0"
-                                step="0.01"
-                                required
-                            >
-                        </div>
-
-                        <div class="col-md-6 mb-3">
-                            <label for="gift-image" class="form-label">
-                                URL da imagem
-                            </label>
-
-                            <input
-                                type="url"
-                                class="form-control"
-                                id="gift-image"
-                                placeholder="https://..."
-                                required
-                            >
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="gift-url" class="form-label">
-                            Link da loja
-                        </label>
-
-                        <input
-                            type="url"
-                            class="form-control"
-                            id="gift-url"
-                            placeholder="https://..."
-                            required
-                        >
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="gift-availability" class="form-label">
-                            Disponibilidade
-                        </label>
-
-                        <select class="form-select" id="gift-availability">
-                            <option value="true">Disponível</option>
-                            <option value="false">Já escolhido</option>
-                        </select>
-                    </div>
-
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            Salvar presente
-                        </button>
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="settings-modal-title">
+                            Configurações do aniversário
+                        </h2>
 
                         <button
                             type="button"
-                            id="cancel-edit"
-                            class="btn btn-outline-secondary d-none"
-                        >
-                            Cancelar edição
-                        </button>
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Fechar"
+                        ></button>
                     </div>
 
-                </form>
+                    <div class="modal-body">
+                        <form id="settings-form">
+
+                            <div class="mb-3">
+                                <label for="birthday-name" class="form-label">
+                                    Nome do aniversariante
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="birthday-name"
+                                    maxlength="100"
+                                    required
+                                >
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="birthday-date-input" class="form-label">
+                                    Data do aniversário
+                                </label>
+
+                                <input
+                                    type="date"
+                                    class="form-control"
+                                    id="birthday-date-input"
+                                    required
+                                >
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="birthday-title-input" class="form-label">
+                                    Título da página
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="birthday-title-input"
+                                    maxlength="150"
+                                    required
+                                >
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="birthday-message-input" class="form-label">
+                                    Mensagem de apresentação
+                                </label>
+
+                                <textarea
+                                    class="form-control"
+                                    id="birthday-message-input"
+                                    rows="3"
+                                    maxlength="500"
+                                    required
+                                ></textarea>
+                            </div>
+
+                            <div id="settings-form-message" class="alert d-none mt-3" role="alert"></div>
+
+                            <div class="d-flex flex-wrap gap-2">
+                                <button
+                                    type="submit"
+                                    id="save-settings"
+                                    class="btn btn-primary"
+                                >
+                                    Salvar configurações
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary"
+                                    data-bs-dismiss="modal"
+                                >
+                                    Fechar
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+
+                </div>
             </div>
-        </section>
+        </div>
 
         <section class="card border-0 shadow-sm">
             <div class="card-body p-4">
 
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="h5 mb-0">Presentes cadastrados</h2>
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <h2 class="h5 mb-0">Presentes cadastrados</h2>
 
-                    <span id="gift-count" class="badge text-bg-secondary">
-                        0 presentes
-                    </span>
+                        <span id="gift-count" class="badge text-bg-secondary">
+                            0 presentes
+                        </span>
+                    </div>
+
+                    <button
+                        type="button"
+                        id="add-gift-button"
+                        class="btn btn-primary"
+                    >
+                        Adicionar presente
+                    </button>
                 </div>
 
                 <div id="gifts-list">
@@ -363,10 +351,155 @@
             </div>
         </section>
 
+        <div
+            class="modal fade"
+            id="gift-modal"
+            tabindex="-1"
+            aria-labelledby="gift-modal-title"
+            aria-hidden="true"
+        >
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h2 class="modal-title h5" id="gift-modal-title">
+                            Adicionar presente
+                        </h2>
+
+                        <button
+                            type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Fechar"
+                        ></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <form id="gift-form">
+
+                            <input type="hidden" id="gift-id">
+
+                            <div class="mb-3">
+                                <label for="gift-name" class="form-label">
+                                    Nome do presente
+                                </label>
+
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id="gift-name"
+                                    required
+                                >
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="gift-description" class="form-label">
+                                    Descrição
+                                </label>
+
+                                <textarea
+                                    class="form-control"
+                                    id="gift-description"
+                                    rows="2"
+                                ></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="gift-price" class="form-label">
+                                        Preço
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        class="form-control"
+                                        id="gift-price"
+                                        min="0"
+                                        step="0.01"
+                                        required
+                                    >
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label for="gift-image" class="form-label">
+                                        URL da imagem
+                                    </label>
+
+                                    <input
+                                        type="url"
+                                        class="form-control"
+                                        id="gift-image"
+                                        placeholder="https://..."
+                                        required
+                                    >
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="gift-url" class="form-label">
+                                    Link da loja
+                                </label>
+
+                                <input
+                                    type="url"
+                                    class="form-control"
+                                    id="gift-url"
+                                    placeholder="https://..."
+                                    required
+                                >
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="gift-availability" class="form-label">
+                                    Disponibilidade
+                                </label>
+
+                                <select class="form-select" id="gift-availability">
+                                    <option value="true">Disponível</option>
+                                    <option value="false">Já escolhido</option>
+                                </select>
+                            </div>
+
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    Salvar presente
+                                </button>
+
+                                <button
+                                    type="button"
+                                    id="cancel-edit"
+                                    class="btn btn-outline-secondary d-none"
+                                >
+                                    Cancelar edição
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-secondary ms-auto"
+                                    data-bs-dismiss="modal"
+                                >
+                                    Fechar
+                                </button>
+                            </div>
+
+                            <div
+                                id="gift-form-message"
+                                class="alert d-none mt-3"
+                                role="alert"
+                            ></div>
+
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
         </div>
 
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/config.js"></script>
     <script src="assets/js/admin.js"></script>
 
