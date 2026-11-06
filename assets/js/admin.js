@@ -393,7 +393,7 @@ function renderReservations(reservations) {
         cancelButton.textContent = 'Cancelar reserva';
 
         cancelButton.addEventListener('click', () => {
-            cancelReservation(reservation.giftId, cancelButton);
+            cancelReservation(reservation.id, cancelButton);
         });
 
         const details = document.createElement('div');
@@ -408,7 +408,7 @@ function renderReservations(reservations) {
     });
 }
 
-async function cancelReservation(giftId, button) {
+async function cancelReservation(reservationId, button) {
     const confirmed = window.confirm(
         'Deseja realmente cancelar esta reserva?'
     );
@@ -422,7 +422,7 @@ async function cancelReservation(giftId, button) {
 
     try {
         const response = await fetch(
-            `${APP_CONFIG.api.baseUrl}/reservations/${giftId}`,
+            `${APP_CONFIG.api.baseUrl}/reservations/${reservationId}`,
             {
                 method: 'DELETE',
                 headers: {

@@ -123,12 +123,16 @@ export class ReservationsStore {
             }, 201);
         }
 
-        // Consulta pública: retorna somente os IDs reservados.
+        // Consulta pública: retorna somente os IDs dos presentes reservados.
         if (request.method === 'GET' && url.pathname === '/') {
             const reservations =
                 await this.ctx.storage.get('reservations') || {};
 
-            return json(Object.keys(reservations).map(Number));
+            const giftIds = Object.values(reservations).map(
+                reservation => Number(reservation.giftId)
+            );
+
+            return json([...new Set(giftIds)]);
         }
 
         // Consulta administrativa: retorna os detalhes das reservas.
@@ -136,7 +140,12 @@ export class ReservationsStore {
             const reservations =
                 await this.ctx.storage.get('reservations') || {};
 
-            return json(Object.values(reservations));
+            return json(
+                Object.entries(reservations).map(([id, reservation]) => ({
+                    id,
+                    ...reservation
+                }))
+            );
         }
 
         if (request.method === 'POST' && url.pathname === '/') {
@@ -173,29 +182,22 @@ export class ReservationsStore {
                     const reservations =
                         await txn.get('reservations') || {};
 
-                    if (reservations[giftId]) {
-                        return { conflict: true };
-                    }
+                    const reservationId = crypto.randomUUID();
 
                     const reservation = {
+                        id: reservationId,
                         giftId,
                         guestName,
                         createdAt: new Date().toISOString()
                     };
 
-                    reservations[giftId] = reservation;
+                    reservations[reservationId] = reservation;
 
                     await txn.put('reservations', reservations);
 
                     return { reservation };
                 }
             );
-
-            if (result.conflict) {
-                return json({
-                    error: 'Este presente já foi reservado.'
-                }, 409);
-            }
 
             return json({
                 message: 'Reserva realizada com sucesso.',
@@ -294,7 +296,11 @@ export class ReservationsStore {
                     return { notFound: true };
                 }
 
-                if (reservations[giftId]) {
+                const hasReservation = Object.values(reservations).some(
+                    reservation => Number(reservation.giftId) === giftId
+                );
+
+                if (hasReservation) {
                     return { hasReservation: true };
                 }
 
@@ -319,10 +325,12 @@ export class ReservationsStore {
         }
         
         if (request.method === 'DELETE') {
-            const giftId = Number(url.pathname.split('/').pop());
+            const reservationId = decodeURIComponent(
+                url.pathname.split('/').pop()
+            );
 
-            if (!Number.isInteger(giftId) || giftId <= 0) {
-                return json({ error: 'Presente inválido.' }, 400);
+            if (!reservationId) {
+                return json({ error: 'Reserva inválida.' }, 400);
             }
 
             const result = await this.ctx.storage.transaction(
@@ -330,11 +338,11 @@ export class ReservationsStore {
                     const reservations =
                         await txn.get('reservations') || {};
 
-                    if (!reservations[giftId]) {
+                    if (!reservations[reservationId]) {
                         return false;
                     }
 
-                    delete reservations[giftId];
+                    delete reservations[reservationId];
                     await txn.put('reservations', reservations);
 
                     return true;

@@ -17,12 +17,10 @@ async function loadGifts() {
     const container = document.getElementById('gifts-container');
 
     try {
-        const [giftsResponse, settingsResponse, reservedIds] =
-            await Promise.all([
-                fetch(`${APP_CONFIG.api.baseUrl}/gifts`),
-                fetch(`${APP_CONFIG.api.baseUrl}/settings`),
-                ReservationService.getReservedGiftIds()
-            ]);
+        const [giftsResponse, settingsResponse] = await Promise.all([
+            fetch(`${APP_CONFIG.api.baseUrl}/gifts`),
+            fetch(`${APP_CONFIG.api.baseUrl}/settings`)
+        ]);
 
         if (!giftsResponse.ok || !settingsResponse.ok) {
             throw new Error('Não foi possível carregar os dados da lista.');
@@ -77,59 +75,40 @@ async function loadGifts() {
             const actions = document.createElement('div');
             actions.className = 'd-grid gap-2';
 
-            const isReserved =
-                reservedIds.includes(Number(gift.id)) ||
-                gift.disponivel === false;
-
             const reserveButton = document.createElement('button');
 
             reserveButton.type = 'button';
             reserveButton.className = 'btn-gift';
+            reserveButton.textContent = 'Reservar presente';
 
-            if (isReserved) {
-                reserveButton.textContent = 'Presente escolhido';
+            reserveButton.addEventListener('click', async () => {
+                const guestName = prompt('Qual é o seu nome?');
+
+                if (!guestName || !guestName.trim()) {
+                    return;
+                }
+
                 reserveButton.disabled = true;
-            } else {
-                reserveButton.textContent = 'Reservar presente';
+                reserveButton.textContent = 'Reservando...';
 
-                reserveButton.addEventListener('click', async () => {
-                    const guestName = prompt('Qual é o seu nome?');
+                try {
+                    await ReservationService.reserveGift(
+                        gift.id,
+                        guestName.trim()
+                    );
 
-                    if (!guestName || !guestName.trim()) {
-                        return;
-                    }
+                    alert(
+                        'Reserva realizada com sucesso! Obrigado pelo carinho!'
+                    );
 
-                    reserveButton.disabled = true;
-                    reserveButton.textContent = 'Reservando...';
+                } catch (error) {
+                    alert(error.message);
 
-                    try {
-                        await ReservationService.reserveGift(
-                            gift.id,
-                            guestName.trim()
-                        );
-
-                        reserveButton.textContent = 'Presente escolhido';
-
-                        alert(
-                            'Reserva realizada com sucesso! Obrigado pelo carinho!'
-                        );
-
-                    } catch (error) {
-                        if (error.message.includes('já foi reservado')) {
-                            reserveButton.textContent = 'Presente escolhido';
-
-                            alert(
-                                'Este presente acabou de ser reservado por outra pessoa.'
-                            );
-                        } else {
-                            reserveButton.disabled = false;
-                            reserveButton.textContent = 'Reservar presente';
-
-                            alert(error.message);
-                        }
-                    }
-                });
-            }
+                } finally {
+                    reserveButton.disabled = false;
+                    reserveButton.textContent = 'Reservar presente';
+                }
+            });
 
             const storeButton = document.createElement('a');
 
