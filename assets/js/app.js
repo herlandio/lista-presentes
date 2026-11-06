@@ -189,7 +189,7 @@ shareButton.addEventListener('click', async () => {
     const shareData = {
         title: document.title,
         text: getShareMessage(),
-        url: window.location.href
+        url: `${window.location.href}convite.html`
     };
 
     if (navigator.share) {

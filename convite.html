@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#090909">
 
-    <title>Convite - Sophia</title>
+    <title>Convite de Aniversário - Sophia</title>
 
     <style>
         * {
@@ -20,25 +20,128 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            background: #090909;
+            background:
+                radial-gradient(ellipse at 50% 45%, #252528 0%, #111112 42%, #070707 100%);
             font-family: Arial, sans-serif;
+            color: #e2e2e7;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Iluminação ambiente prateada */
+        body::before {
+            content: "";
+            position: fixed;
+            width: 650px;
+            height: 650px;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(
+                circle,
+                rgba(200, 200, 210, .08),
+                transparent 68%
+            );
+            pointer-events: none;
+        }
+
+        .page {
+            position: relative;
+            width: 100%;
+            max-width: 720px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 1;
+        }
+
+        /* Cabeçalho */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .eyebrow {
+            font-size: 10px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            color: #c7c7cc;
+            margin-bottom: 13px;
+        }
+
+        .name {
+            font-family: Georgia, serif;
+            font-size: clamp(35px, 7vw, 52px);
+            font-weight: normal;
+            letter-spacing: 5px;
+            color: #e2e2e7;
+            margin: 0;
+        }
+
+        .subtitle {
+            margin-top: 10px;
+            font-size: 10px;
+            letter-spacing: 4px;
+            color: #9999a1;
+            text-transform: uppercase;
+        }
+
+        .ornament {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .ornament span {
+            width: 55px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #aeb0b8);
+        }
+
+        .ornament span:last-child {
+            transform: rotate(180deg);
+        }
+
+        .ornament i {
+            color: #c9c9cf;
+            font-size: 13px;
+            font-style: normal;
+        }
+
+        /* Área do vídeo */
+        .video-section {
+            position: relative;
+            width: 100%;
+            max-width: 460px;
+            padding: 12px;
+            background: linear-gradient(
+                145deg,
+                rgba(255,255,255,.08),
+                rgba(255,255,255,.01),
+                rgba(200,200,210,.08)
+            );
+            border: 1px solid rgba(200, 200, 210, .25);
+            box-shadow:
+                0 25px 80px rgba(0,0,0,.65),
+                0 0 50px rgba(200,200,210,.05);
         }
 
         .video-container {
             position: relative;
             width: 100%;
-            max-width: 460px;
             overflow: hidden;
-            border-radius: 12px;
             background: #000;
         }
 
         video {
             display: block;
             width: 100%;
-            max-height: 90vh;
+            max-height: 78vh;
         }
 
+        /* Encerramento do vídeo */
         .video-overlay {
             position: absolute;
             inset: 0;
@@ -49,7 +152,7 @@
             gap: 20px;
             padding: 25px;
             text-align: center;
-            background: rgba(0, 0, 0, 0.82);
+            background: rgba(8, 8, 8, .94);
             opacity: 0;
             visibility: hidden;
             transition: .4s;
@@ -61,58 +164,224 @@
         }
 
         .video-overlay p {
-            color: white;
-            font-size: 22px;
+            color: #e2e2e7;
+            font-family: Georgia, serif;
+            font-size: 23px;
+            line-height: 1.5;
         }
 
         .gift-link {
-            padding: 15px 25px;
-            border-radius: 30px;
-            background: linear-gradient(135deg, #fff, #c9c9c9);
-            color: #111;
+            padding: 15px 26px;
+            border: 1px solid #c9c9cf;
+            background: linear-gradient(135deg, #f0f0f2, #aeb0b8);
+            color: #171719;
             text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 1px;
             font-weight: bold;
+            transition: .3s;
+        }
+
+        .gift-link:hover {
+            background: #ffffff;
+            transform: translateY(-2px);
         }
 
         .replay {
             padding: 10px 18px;
-            border: 1px solid white;
-            border-radius: 25px;
-            color: white;
+            border: 1px solid rgba(220, 220, 230, .5);
+            color: #e2e2e7;
             background: transparent;
             cursor: pointer;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        .replay:hover {
+            background: rgba(255,255,255,.08);
+        }
+
+        /* Rodapé */
+        .footer {
+            margin-top: 25px;
+            text-align: center;
+        }
+
+        .footer p {
+            margin: 0;
+            font-family: Georgia, serif;
+            font-style: italic;
+            font-size: 14px;
+            color: #aaaab2;
+            letter-spacing: 1px;
+        }
+
+        .footer small {
+            display: block;
+            margin-top: 12px;
+            color: #777780;
+            font-size: 9px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        /* Ajustes para celulares */
+        @media (max-width: 600px) {
+            body {
+                min-height: 100svh;
+                padding: 4px 8px;
+                align-items: center;
+            }
+
+            .page {
+                width: 100%;
+                margin: auto 0;
+            }
+
+            .header {
+                margin-bottom: 8px;
+            }
+
+            .eyebrow {
+                font-size: 8px;
+                margin-bottom: 3px;
+                letter-spacing: 3px;
+            }
+
+            .name {
+                font-size: 30px;
+                letter-spacing: 4px;
+            }
+
+            .subtitle {
+                margin-top: 3px;
+                font-size: 8px;
+            }
+
+            .ornament {
+                margin-top: 6px;
+            }
+
+            .ornament span {
+                width: 30px;
+            }
+
+            .video-section {
+                width: 100%;
+                max-width: 460px;
+                margin: 0 auto;
+                padding: 3px;
+            }
+
+            .video-container {
+                width: 100%;
+            }
+
+            video {
+                display: block;
+                width: 100%;
+                height: auto;
+                max-height: 82svh;
+                object-fit: contain;
+            }
+
+            .footer {
+                margin-top: 8px;
+            }
+
+            .footer p {
+                font-size: 11px;
+            }
+
+            .footer small {
+                margin-top: 5px;
+                font-size: 8px;
+            }
+        }
+
+        /* Celulares com pouca altura */
+        @media (max-width: 600px) and (max-height: 700px) {
+            .name {
+                font-size: 25px;
+            }
+
+            .header {
+                margin-bottom: 5px;
+            }
+
+            .ornament {
+                margin-top: 4px;
+            }
+
+            video {
+                max-height: 75svh;
+            }
+
+            .footer {
+                margin-top: 5px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <main class="video-container">
+    <main class="page">
 
-        <video id="invitation-video" controls playsinline preload="metadata">
-            <source
-                src="assets/video/convite-sophia.mp4"
-                type="video/mp4"
-            >
-            Seu navegador não suporta vídeos.
-        </video>
+        <header class="header">
+            <div class="eyebrow">Um momento especial</div>
 
-        <div id="video-overlay" class="video-overlay">
+            <h1 class="name">Sophia</h1>
 
-            <p>Preparamos tudo com muito carinho! ❤️</p>
+            <div class="subtitle">Você está convidado</div>
 
-            <a
-                href="./index.html"
-                class="gift-link"
-            >
-                Acessar lista de presença ↗
-            </a>
+            <div class="ornament">
+                <span></span>
+                <i>✦</i>
+                <span></span>
+            </div>
+        </header>
 
-            <button id="replay-button" class="replay">
-                Assistir novamente
-            </button>
+        <section class="video-section">
 
-        </div>
+            <div class="video-container">
+
+                <video
+                    id="invitation-video"
+                    controls
+                    playsinline
+                    autoplay
+                    preload="auto"
+                >
+                    <source
+                        src="assets/video/convite-sophia.mp4"
+                        type="video/mp4"
+                    >
+                    Seu navegador não suporta vídeos.
+                </video>
+
+                <div id="video-overlay" class="video-overlay">
+
+                    <p>Preparamos tudo com muito carinho! ❤️</p>
+
+                    <a href="./index.html" class="gift-link">
+                        Acessar lista de presença ↗
+                    </a>
+
+                    <button id="replay-button" class="replay">
+                        Assistir novamente
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <footer class="footer">
+            <p>Será uma alegria ter você conosco.</p>
+            <small>Com carinho, Sophia</small>
+        </footer>
 
     </main>
 
@@ -121,18 +390,33 @@
         const overlay = document.getElementById('video-overlay');
         const replay = document.getElementById('replay-button');
 
+        // Mantém o áudio ativado
+        video.muted = false;
+        video.volume = 1;
+
         video.addEventListener('ended', () => {
             overlay.classList.add('show');
         });
 
         replay.addEventListener('click', () => {
             overlay.classList.remove('show');
+
             video.currentTime = 0;
-            video.play();
+            video.muted = false;
+            video.volume = 1;
+
+            video.play().catch(() => {
+                // O navegador poderá exigir interação pelo player.
+            });
         });
 
         video.addEventListener('play', () => {
             overlay.classList.remove('show');
+        });
+
+        // Tenta iniciar automaticamente com áudio
+        video.play().catch(() => {
+            // Alguns navegadores bloqueiam autoplay com áudio.
         });
     </script>
 
