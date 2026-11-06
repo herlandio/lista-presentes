@@ -115,9 +115,13 @@ async function loadGifts() {
             reserveButton.textContent = 'Reservar presente';
 
             reserveButton.addEventListener('click', async () => {
-                const guestName = prompt('Qual é o seu nome?');
+                const guestName = await AppAlerts.prompt({
+                    title: 'Reservar presente',
+                    inputLabel: 'Qual é o seu nome?',
+                    inputPlaceholder: 'Seu nome'
+                });
 
-                if (!guestName || !guestName.trim()) {
+                if (!guestName) {
                     return;
                 }
 
@@ -127,15 +131,15 @@ async function loadGifts() {
                 try {
                     await ReservationService.reserveGift(
                         gift.id,
-                        guestName.trim()
+                        guestName
                     );
 
-                    alert(
+                    AppAlerts.success(
                         'Reserva realizada com sucesso! Obrigado pelo carinho!'
                     );
 
                 } catch (error) {
-                    alert(error.message);
+                    AppAlerts.error(error.message);
 
                 } finally {
                     reserveButton.disabled = false;
@@ -173,7 +177,7 @@ loadGifts();
 
 const shareButton = document.getElementById('share-button');
 const copyButton = document.getElementById('copy-button');
-const copyFeedback = document.getElementById('copy-feedback');
+
 
 const getShareMessage = () => {
     const title = document.getElementById('birthday-title').textContent;
@@ -210,10 +214,9 @@ copyButton.addEventListener('click', async () => {
     try {
         await navigator.clipboard.writeText(window.location.href);
 
-        copyFeedback.textContent = 'Link copiado com sucesso!';
+        AppAlerts.success('Link copiado com sucesso!');
     } catch (error) {
-        copyFeedback.textContent =
-            'Não foi possível copiar automaticamente o link.';
+        AppAlerts.error('Não foi possível copiar automaticamente o link.');
     }
 });
 // ========================================
@@ -223,12 +226,10 @@ copyButton.addEventListener('click', async () => {
 
 const rsvpForm = document.getElementById('rsvp-form');
 const guestNameInput = document.getElementById('guest-name');
-const rsvpMessage = document.getElementById('rsvp-message');
 const confirmPresenceButton = document.getElementById('confirm-presence');
 
 function showRsvpMessage(message, type = 'success') {
-    rsvpMessage.textContent = message;
-    rsvpMessage.className = `alert alert-${type} mt-3`;
+    AppAlerts.show(message, type);
 }
 
 rsvpForm.addEventListener('submit', async event => {
@@ -243,7 +244,6 @@ rsvpForm.addEventListener('submit', async event => {
 
     confirmPresenceButton.disabled = true;
     confirmPresenceButton.textContent = 'Enviando confirmação...';
-    rsvpMessage.textContent = '';
 
     try {
         const response = await fetch(

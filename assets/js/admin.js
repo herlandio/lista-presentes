@@ -28,8 +28,7 @@ const fields = {
 };
 
 function showMessage(text, type = 'success') {
-    message.textContent = text;
-    message.className = `alert alert-${type}`;
+    AppAlerts.show(text, type);
 }
 
 function hideMessage() {
@@ -108,8 +107,7 @@ function renderPagination(
 }
 
 function showGiftFormMessage(text, type = 'danger') {
-    giftFormMessage.textContent = text;
-    giftFormMessage.className = `alert alert-${type} mt-3`;
+    AppAlerts.show(text, type);
 }
 
 function hideGiftFormMessage() {
@@ -290,9 +288,11 @@ function editGift(id) {
 }
 
 async function deleteGift(id) {
-    const confirmed = window.confirm(
-        'Deseja realmente excluir este presente?'
-    );
+    const confirmed = await AppAlerts.confirm({
+        title: 'Excluir presente?',
+        text: 'Deseja realmente excluir este presente?',
+        confirmButtonText: 'Excluir'
+    });
 
     if (!confirmed) return;
 
@@ -450,13 +450,12 @@ const adminContentView = document.getElementById('admin-content');
 const adminLogoutButton = document.getElementById('admin-logout');
 
 function showReservationMessage(text, type = 'success') {
-    reservationsMessage.textContent = text;
-    reservationsMessage.className = `alert alert-${type} mt-3`;
+    AppAlerts.show(text, type);
 }
 
 function clearReservationMessage() {
     reservationsMessage.textContent = '';
-    reservationsMessage.className = 'mt-3';
+    reservationsMessage.className = 'd-none';
 }
 
 async function fetchReservations() {
@@ -596,9 +595,12 @@ function renderReservations() {
 }
 
 async function cancelReservation(reservationId, button) {
-    const confirmed = window.confirm(
-        'Deseja realmente cancelar esta reserva?'
-    );
+    const confirmed = await AppAlerts.confirm({
+        title: 'Cancelar reserva?',
+        text: 'Deseja realmente cancelar esta reserva?',
+        confirmButtonText: 'Cancelar reserva',
+        cancelButtonText: 'Voltar'
+    });
 
     if (!confirmed) return;
 
@@ -661,13 +663,12 @@ let guestData = [];
 let guestCurrentPage = 1;
 
 function showGuestMessage(text, type = 'success') {
-    guestMessage.textContent = text;
-    guestMessage.className = `alert alert-${type} mt-3`;
+    AppAlerts.show(text, type);
 }
 
 function clearGuestMessage() {
     guestMessage.textContent = '';
-    guestMessage.className = 'mt-3';
+    guestMessage.className = 'd-none';
 }
 
 async function guestApiRequest(path, options = {}) {
@@ -880,9 +881,11 @@ function renderGuests() {
 }
 
 async function deleteGuest(guestId, button) {
-    const confirmed = window.confirm(
-        'Deseja realmente excluir este convidado?'
-    );
+    const confirmed = await AppAlerts.confirm({
+        title: 'Excluir convidado?',
+        text: 'Deseja realmente excluir este convidado?',
+        confirmButtonText: 'Excluir'
+    });
 
     if (!confirmed) return;
 
@@ -938,13 +941,11 @@ const settingsModalElement = document.getElementById('settings-modal');
 const settingsModal = new bootstrap.Modal(settingsModalElement);
 
 function showSettingsMessage(message, type = 'success') {
-    settingsFeedback.textContent = message;
-    settingsFeedback.className = `alert alert-${type} mb-0`;
+    AppAlerts.show(message, type);
 }
 
 function showSettingsFormMessage(message, type = 'danger') {
-    settingsFormMessage.textContent = message;
-    settingsFormMessage.className = `alert alert-${type} mt-3`;
+    AppAlerts.show(message, type);
 }
 
 function hideSettingsFormMessage() {
@@ -1031,13 +1032,12 @@ settingsForm.addEventListener('submit', async (event) => {
 });
 
 function showAccessMessage(text, type = 'success') {
-    adminAccessMessage.textContent = text;
-    adminAccessMessage.className = `alert alert-${type} mt-3`;
+    AppAlerts.show(text, type);
 }
 
 function clearAccessMessage() {
     adminAccessMessage.textContent = '';
-    adminAccessMessage.className = 'mt-3';
+    adminAccessMessage.className = 'd-none';
 }
 
 const ADMIN_TOKEN_COOKIE = 'lista_presentes_admin_token';
