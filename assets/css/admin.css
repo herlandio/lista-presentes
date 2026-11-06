@@ -1,0 +1,497 @@
+
+/* ========================================
+   PAINEL ADMINISTRATIVO
+   Tema preto, grafite e prata
+======================================== */
+
+:root {
+    --admin-bg: #19191d;
+    --admin-surface: #25252b;
+    --admin-surface-light: #303038;
+    --admin-border: #414149;
+    --admin-text: #f1f1f3;
+    --admin-muted: #b0b0ba;
+    --admin-silver: #dedee5;
+    --admin-silver-dark: #bcbcc6;
+    --admin-danger: #e07878;
+    --admin-success: #79c99b;
+}
+
+body {
+    background:
+        radial-gradient(ellipse at top, #303037 0%, transparent 55%),
+        var(--admin-bg);
+    color: var(--admin-text);
+    min-height: 100vh;
+}
+
+/* ========================================
+   TÍTULOS E TEXTOS
+======================================== */
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--admin-text);
+    font-weight: 600;
+}
+
+p {
+    color: var(--admin-muted);
+}
+
+.text-secondary {
+    color: var(--admin-muted) !important;
+}
+
+/* ========================================
+   CARDS
+======================================== */
+
+.card {
+    background: var(--admin-surface);
+    color: var(--admin-text);
+    border: 1px solid var(--admin-border) !important;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18) !important;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+.card .border {
+    border-color: var(--admin-border) !important;
+    background: var(--admin-surface-light);
+    border-radius: 12px;
+}
+
+/* ========================================
+   BOTÕES
+======================================== */
+
+.btn {
+    border-radius: 9px;
+    font-weight: 500;
+    padding: 0.55rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: var(--admin-silver);
+    border-color: var(--admin-silver);
+    color: #202026;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background: #ffffff;
+    border-color: #ffffff;
+    color: #17171b;
+    transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+    color: var(--admin-silver);
+    border-color: var(--admin-silver-dark);
+}
+
+.btn-outline-primary:hover {
+    background: var(--admin-silver);
+    border-color: var(--admin-silver);
+    color: #202026;
+}
+
+.btn-outline-secondary {
+    color: var(--admin-text);
+    border-color: #777780;
+}
+
+.btn-outline-secondary:hover {
+    background: var(--admin-surface-light);
+    border-color: var(--admin-silver);
+    color: #fff;
+}
+
+.btn-outline-danger {
+    color: var(--admin-danger);
+    border-color: var(--admin-danger);
+}
+
+.btn-outline-danger:hover {
+    background: var(--admin-danger);
+    border-color: var(--admin-danger);
+    color: #1b1111;
+}
+
+.btn-danger {
+    background: #a94444;
+    border-color: #a94444;
+}
+
+.btn-danger:hover {
+    background: #c35454;
+    border-color: #c35454;
+}
+
+.btn-success {
+    background: #347b55;
+    border-color: #347b55;
+}
+
+.btn-sm {
+    padding: 0.4rem 0.75rem;
+}
+
+/* ========================================
+   FORMULÁRIOS
+======================================== */
+
+.form-label {
+    color: var(--admin-text);
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select {
+    background-color: #1d1d22;
+    border: 1px solid var(--admin-border);
+    color: var(--admin-text);
+    border-radius: 9px;
+    padding: 0.7rem 0.85rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background-color: #222228;
+    color: #fff;
+    border-color: var(--admin-silver-dark);
+    box-shadow: 0 0 0 0.2rem rgba(220, 220, 230, 0.12);
+}
+
+.form-control::placeholder {
+    color: #85858f;
+}
+
+.form-control:disabled,
+.form-select:disabled {
+    background-color: #303038;
+    color: var(--admin-muted);
+}
+
+.form-select option {
+    background: #25252b;
+    color: #fff;
+}
+
+.form-control[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+/* ========================================
+   ABAS
+======================================== */
+
+.nav-tabs {
+    border-bottom: 1px solid var(--admin-border);
+    gap: 5px;
+}
+
+.nav-tabs .nav-link {
+    color: var(--admin-muted);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 9px 9px 0 0;
+    padding: 0.8rem 1.1rem;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link:hover {
+    color: #fff;
+    border-color: var(--admin-border);
+}
+
+.nav-tabs .nav-link.active {
+    color: #202026;
+    background: var(--admin-silver);
+    border-color: var(--admin-silver);
+}
+
+/* ========================================
+   BADGES
+======================================== */
+
+.badge.text-bg-secondary {
+    background: #55555f !important;
+    color: #fff !important;
+}
+
+.badge.text-bg-success {
+    background: #286b49 !important;
+}
+
+.badge.text-bg-danger {
+    background: #853d3d !important;
+}
+
+.badge.text-bg-warning {
+    background: #a58b4d !important;
+    color: #171717 !important;
+}
+
+/* ========================================
+   LISTAS E TABELAS
+======================================== */
+
+#admin-content table {
+    color: var(--admin-text);
+    border-color: var(--admin-border);
+    vertical-align: middle;
+}
+
+#admin-content table th {
+    background: var(--admin-surface-light);
+    color: var(--admin-silver);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+#admin-content table td {
+    background: var(--admin-surface);
+    color: var(--admin-text);
+}
+
+#admin-content table tr:hover td {
+    background: #303038;
+}
+
+#admin-content .table-responsive {
+    border: 1px solid var(--admin-border);
+    border-radius: 10px;
+}
+
+#admin-content hr {
+    border-color: var(--admin-border);
+    opacity: 1;
+}
+
+/* Elementos dinâmicos das listas */
+
+#reservations-list,
+#guests-list,
+#gifts-list {
+    color: var(--admin-muted);
+}
+
+#reservations-list > *,
+#guests-list > *,
+#gifts-list > * {
+    border-color: var(--admin-border);
+}
+
+#guests-list .border,
+#reservations-list .border,
+#gifts-list .border {
+    border-color: var(--admin-border) !important;
+}
+
+/* ========================================
+   PAGINAÇÃO
+======================================== */
+
+.pagination {
+    gap: 5px;
+}
+
+.pagination .page-link {
+    background: var(--admin-surface-light);
+    color: var(--admin-text);
+    border: 1px solid var(--admin-border);
+    border-radius: 7px;
+}
+
+.pagination .page-link:hover {
+    background: var(--admin-silver);
+    color: #202026;
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--admin-silver);
+    border-color: var(--admin-silver);
+    color: #202026;
+}
+
+.pagination .page-item.disabled .page-link {
+    background: #24242a;
+    color: #777780;
+}
+
+/* ========================================
+   MODAIS
+======================================== */
+
+.modal-content {
+    background: var(--admin-surface);
+    color: var(--admin-text);
+    border: 1px solid var(--admin-border);
+    border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.modal-header,
+.modal-footer {
+    border-color: var(--admin-border);
+}
+
+.modal-title {
+    color: var(--admin-text);
+}
+
+.btn-close {
+    filter: invert(1);
+    opacity: 0.8;
+}
+
+.btn-close:hover {
+    opacity: 1;
+}
+
+.modal-backdrop.show {
+    opacity: 0.75;
+}
+
+/* ========================================
+   ALERTAS
+======================================== */
+
+.alert {
+    border-radius: 10px;
+}
+
+.alert-success {
+    background: #203b2d;
+    border-color: #315b42;
+    color: #a8e4bd;
+}
+
+.alert-danger {
+    background: #422525;
+    border-color: #693838;
+    color: #f0b0b0;
+}
+
+.alert-warning {
+    background: #403722;
+    border-color: #66562e;
+    color: #ead49a;
+}
+
+.alert-info {
+    background: #253644;
+    border-color: #3b596f;
+    color: #b5d9f0;
+}
+
+/* ========================================
+   ACESSO ADMINISTRATIVO
+======================================== */
+
+#admin-access {
+    max-width: 620px;
+    margin: 3rem auto;
+}
+
+#admin-access .card-body {
+    padding: 2rem;
+}
+
+#admin-access h2 {
+    color: var(--admin-silver);
+}
+
+/* ========================================
+   ESTADOS E TRANSIÇÕES
+======================================== */
+
+button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+.d-none {
+    display: none !important;
+}
+
+/* ========================================
+   RESPONSIVIDADE
+======================================== */
+
+@media (max-width: 767px) {
+    main.container {
+        padding-top: 1.5rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    main > .d-flex:first-child {
+        align-items: flex-start !important;
+    }
+
+    main > .d-flex:first-child h1 {
+        font-size: 1.35rem;
+    }
+
+    main > .d-flex:first-child > div:last-child {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .card-body {
+        padding: 1.1rem;
+    }
+
+    .nav-tabs {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 5px;
+    }
+
+    .nav-tabs .nav-link {
+        white-space: nowrap;
+        font-size: 0.88rem;
+        padding: 0.7rem 0.85rem;
+    }
+
+    #admin-access {
+        margin-top: 2rem;
+    }
+
+    #admin-access .card-body {
+        padding: 1.3rem;
+    }
+
+    .modal-dialog {
+        margin: 0.6rem;
+    }
+
+    .modal-content {
+        border-radius: 13px;
+    }
+
+    .pagination {
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 420px) {
+    main > .d-flex:first-child {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    main > .d-flex:first-child > div:last-child {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}

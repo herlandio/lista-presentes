@@ -178,18 +178,24 @@ loadGifts();
 const shareButton = document.getElementById('share-button');
 const copyButton = document.getElementById('copy-button');
 
+const getInvitationUrl = () => {
+    return new URL('convite.html', window.location.href).href;
+};
 
 const getShareMessage = () => {
     const title = document.getElementById('birthday-title').textContent;
+    const invitationUrl = getInvitationUrl();
 
-    return `Confira minha lista de presentes: ${title} ${window.location.href}`;
+    return `Confira meu convite de aniversário: ${title}\n\n${invitationUrl}`;
 };
 
 shareButton.addEventListener('click', async () => {
+    const invitationUrl = getInvitationUrl();
+
     const shareData = {
         title: document.title,
-        text: getShareMessage(),
-        url: `${window.location.href}convite.html`
+        text: `Confira meu convite de aniversário: ${document.getElementById('birthday-title').textContent}`,
+        url: invitationUrl
     };
 
     if (navigator.share) {
@@ -219,7 +225,7 @@ copyButton.addEventListener('click', async () => {
         AppAlerts.error('Não foi possível copiar automaticamente o link.');
     }
 });
-// ========================================
+
 // ========================================
 // CONFIRMAÇÃO DE PRESENÇA (RSVP)
 // ========================================

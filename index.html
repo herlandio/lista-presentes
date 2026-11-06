@@ -4,10 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#090909">
 
     <title>Minha Lista de Presentes</title>
 
-    <meta name="description" content="Confira minha lista de presentes de aniversário.">
+    <meta
+        name="description"
+        content="Confira minha lista de presentes de aniversário."
+    >
 
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
@@ -16,15 +20,23 @@
 
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
+
 <body>
 
     <header class="hero">
-        <div class="container text-center">
+        <div class="container text-center hero-content">
+
             <span class="hero-label">UM DIA ESPECIAL</span>
 
             <h1 id="birthday-title">Minha lista de presentes</h1>
-            
+
             <p id="birthday-name" class="hero-name"></p>
+
+            <div class="hero-ornament">
+                <span></span>
+                <i>✦</i>
+                <span></span>
+            </div>
 
             <p id="birthday-message" class="hero-message">
                 Sua presença já é um presente!
@@ -43,24 +55,35 @@
                     Copiar link
                 </button>
             </div>
+
         </div>
     </header>
 
-    <main class="container py-5">
-                <!-- CONFIRMAÇÃO DE PRESENÇA -->
-        <section class="card border-0 shadow-sm mb-5">
-            <div class="card-body p-4 text-center">
+    <main class="container main-content">
 
-                <h2 class="h4 mb-2">Confirme sua presença</h2>
+        <!-- CONFIRMAÇÃO DE PRESENÇA -->
+        <section class="rsvp-section">
 
-                <p class="text-secondary mb-4">
-                    Sua presença é muito especial! Informe seu nome para confirmar.
+            <div class="rsvp-card">
+
+                <div class="section-symbol">✧</div>
+
+                <span class="section-eyebrow">VAI SER ESPECIAL TER VOCÊ LÁ</span>
+
+                <h2>Confirme sua presença</h2>
+
+                <p class="rsvp-description">
+                    Sua presença é muito especial!
+                    Informe seu nome para confirmar.
                 </p>
 
-                <form id="rsvp-form" class="mx-auto" style="max-width: 450px;">
+                <form id="rsvp-form" class="rsvp-form">
 
                     <div class="mb-3 text-start">
-                        
+                        <label for="guest-name" class="form-label">
+                            Seu nome
+                        </label>
+
                         <input
                             type="text"
                             class="form-control"
@@ -75,9 +98,10 @@
                         <button
                             type="submit"
                             id="confirm-presence"
-                            class="btn btn-success"
+                            class="btn-confirm"
                         >
                             Confirmar presença
+                            <span>↗</span>
                         </button>
                     </div>
 
@@ -86,29 +110,44 @@
                 <div id="rsvp-message" class="d-none" role="status"></div>
 
             </div>
-        </section>
-        <section class="text-center mb-5">
-            <h2>Escolha um presente</h2>
 
-            <p class="section-description">
-                Preparei algumas sugestões com muito carinho.
-                Fique à vontade para escolher!
-            </p>
         </section>
 
-        <section>
+        <!-- LISTA DE PRESENTES -->
+        <section class="gifts-section">
+
+            <div class="section-heading text-center">
+
+                <span class="section-eyebrow">ESCOLHIDOS COM CARINHO</span>
+
+                <h2>Escolha um presente</h2>
+
+                <div class="heading-ornament">✦</div>
+
+                <p class="section-description">
+                    Preparei algumas sugestões com muito carinho.
+                    Fique à vontade para escolher!
+                </p>
+
+            </div>
+
             <div id="gifts-container" class="row g-4">
-                <div class="col-12 text-center">
+
+                <div class="col-12 text-center loading-message">
                     Carregando presentes...
                 </div>
+
             </div>
+
         </section>
 
     </main>
 
     <footer class="site-footer">
         <div class="container text-center">
-            <p>Feito com carinho ❤️</p>
+            <div class="footer-ornament">✦</div>
+            <p>Feito com carinho <span>♥</span></p>
+            <small>Um dia especial para celebrar a vida</small>
         </div>
     </footer>
 
