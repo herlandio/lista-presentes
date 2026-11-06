@@ -99,6 +99,7 @@ main h2 {
     min-height: 40px;
     color: var(--muted);
     font-size: 14px;
+    white-space: pre-line;
 }
 
 .gift-price {
