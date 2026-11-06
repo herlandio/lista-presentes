@@ -456,9 +456,6 @@ loadReservationsButton.addEventListener('click', fetchReservations);
 // GERENCIAMENTO DE CONVIDADOS (RSVP)
 // ========================================
 
-const guestForm = document.getElementById('guest-form');
-const guestName = document.getElementById('guest-name');
-const addGuestButton = document.getElementById('add-guest');
 const loadGuestsButton = document.getElementById('load-guests');
 const guestsList = document.getElementById('guests-list');
 const guestMessage = document.getElementById('guest-message');
@@ -583,27 +580,6 @@ function renderGuests(guests) {
 
         header.append(name, status);
 
-        const code = document.createElement('p');
-        code.className = 'small text-secondary mt-2 mb-2';
-        code.textContent = `Código do convite: ${guest.code}`;
-
-        const copyButton = document.createElement('button');
-        copyButton.type = 'button';
-        copyButton.className = 'btn btn-sm btn-outline-secondary';
-        copyButton.textContent = 'Copiar código';
-
-        copyButton.addEventListener('click', async () => {
-            try {
-                await navigator.clipboard.writeText(guest.code);
-                copyButton.textContent = 'Copiado!';
-            } catch {
-                showGuestMessage(
-                    'Não foi possível copiar o código neste navegador.',
-                    'danger'
-                );
-            }
-        });
-
         const updated = document.createElement('small');
         updated.className = 'd-block text-secondary mt-2';
 
@@ -614,50 +590,10 @@ function renderGuests(guests) {
             updated.textContent = 'Aguardando resposta.';
         }
 
-        item.append(header, code, copyButton, updated);
+        item.append(header, updated);
         guestsList.append(item);
     });
 }
-
-guestForm.addEventListener('submit', async event => {
-    event.preventDefault();
-    clearGuestMessage();
-
-    const name = guestName.value.trim();
-
-    if (!name) {
-        showGuestMessage('Informe o nome do convidado.', 'warning');
-        return;
-    }
-
-    addGuestButton.disabled = true;
-    addGuestButton.textContent = 'Cadastrando...';
-
-    try {
-        const data = await guestApiRequest('/guests/admin', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ name })
-        });
-
-        guestForm.reset();
-
-        showGuestMessage(
-            `Convidado cadastrado! Código: ${data.guest.code}`
-        );
-
-        await fetchGuests();
-
-    } catch (error) {
-        showGuestMessage(error.message, 'danger');
-
-    } finally {
-        addGuestButton.disabled = false;
-        addGuestButton.textContent = 'Cadastrar convidado';
-    }
-});
 
 loadGuestsButton.addEventListener('click', fetchGuests);
 

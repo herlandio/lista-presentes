@@ -56,44 +56,33 @@
                 <h2 class="h4 mb-2">Confirme sua presença</h2>
 
                 <p class="text-secondary mb-4">
-                    Sua presença é muito especial! Informe o código
-                    do seu convite para confirmar.
+                    Sua presença é muito especial! Informe seu nome para confirmar.
                 </p>
 
                 <form id="rsvp-form" class="mx-auto" style="max-width: 450px;">
 
                     <div class="mb-3 text-start">
-                        <label for="invite-code" class="form-label">
-                            Código do convite
+                        <label for="guest-name" class="form-label">
+                            Seu nome
                         </label>
 
                         <input
                             type="text"
-                            class="form-control text-center text-uppercase"
-                            id="invite-code"
-                            placeholder="ANIV-XXXXXXXX"
-                            maxlength="13"
+                            class="form-control"
+                            id="guest-name"
+                            placeholder="Digite seu nome completo"
+                            maxlength="100"
                             required
                         >
                     </div>
 
-                    <div class="d-grid gap-2">
+                    <div class="d-grid">
                         <button
                             type="submit"
                             id="confirm-presence"
                             class="btn btn-success"
-                            value="confirmed"
                         >
-                            Vou comparecer
-                        </button>
-
-                        <button
-                            type="submit"
-                            id="decline-presence"
-                            class="btn btn-outline-secondary"
-                            value="declined"
-                        >
-                            Não poderei comparecer
+                            Confirmar presença
                         </button>
                     </div>
 

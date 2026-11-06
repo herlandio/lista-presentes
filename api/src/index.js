@@ -397,7 +397,7 @@ export class ReservationsStore {
             }, 201);
         }
 
-        // Confirmação pública de presença pelo código individual.
+        // Confirmação pública de presença pelo nome.
         if (request.method === 'POST' && url.pathname === '/guests/confirm') {
             let body;
 
@@ -407,46 +407,61 @@ export class ReservationsStore {
                 return json({ error: 'JSON inválido.' }, 400);
             }
 
-            const code = String(body.code || '').trim().toUpperCase();
-            const status = String(body.status || '').trim();
+            const name = String(body?.name || '').trim().replace(/\s+/g, ' ');
 
-            if (!code || !/^ANIV-[A-F0-9]{8}$/.test(code)) {
-                return json({ error: 'Código de convite inválido.' }, 400);
+            if (!name || name.length > 100) {
+                return json({
+                    error: 'Informe um nome válido com até 100 caracteres.'
+                }, 400);
             }
 
-            if (!['confirmed', 'declined'].includes(status)) {
-                return json({ error: 'Resposta inválida.' }, 400);
-            }
+            const normalizeName = value => String(value || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .trim()
+                .replace(/\s+/g, ' ')
+                .toLocaleLowerCase('pt-BR');
 
             const result = await this.ctx.storage.transaction(
                 async (txn) => {
                     const guests = await txn.get('guests') || {};
-                    const guest = guests[code];
 
-                    if (!guest) {
-                        return { notFound: true };
+                    const existingEntry = Object.entries(guests).find(
+                        ([, guest]) =>
+                            normalizeName(guest.name) === normalizeName(name)
+                    );
+
+                    const now = new Date().toISOString();
+
+                    if (existingEntry) {
+                        const [key, guest] = existingEntry;
+
+                        guest.name = name;
+                        guest.status = 'confirmed';
+                        guest.updatedAt = now;
+
+                        guests[key] = guest;
+                    } else {
+                        const key = `PUBLIC-${crypto.randomUUID()}`;
+
+                        guests[key] = {
+                            code: null,
+                            name,
+                            status: 'confirmed',
+                            createdAt: now,
+                            updatedAt: now
+                        };
                     }
-
-                    guest.status = status;
-                    guest.updatedAt = new Date().toISOString();
-
-                    guests[code] = guest;
 
                     await txn.put('guests', guests);
 
-                    return {
-                        status: guest.status
-                    };
+                    return { status: 'confirmed' };
                 }
             );
 
-            if (result.notFound) {
-                return json({ error: 'Convite não encontrado.' }, 404);
-            }
-
             return json({
-                message: 'Resposta registrada com sucesso.',
-                guest: result
+                message: 'Presença confirmada com sucesso.',
+                ...result
             });
         }
 

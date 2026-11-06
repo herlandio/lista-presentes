@@ -205,57 +205,32 @@ copyButton.addEventListener('click', async () => {
     }
 });
 // ========================================
+// ========================================
 // CONFIRMAÇÃO DE PRESENÇA (RSVP)
 // ========================================
 
 const rsvpForm = document.getElementById('rsvp-form');
-const inviteCodeInput = document.getElementById('invite-code');
+const guestNameInput = document.getElementById('guest-name');
 const rsvpMessage = document.getElementById('rsvp-message');
-
 const confirmPresenceButton = document.getElementById('confirm-presence');
-const declinePresenceButton = document.getElementById('decline-presence');
 
 function showRsvpMessage(message, type = 'success') {
     rsvpMessage.textContent = message;
     rsvpMessage.className = `alert alert-${type} mt-3`;
 }
 
-inviteCodeInput.addEventListener('input', () => {
-    inviteCodeInput.value = inviteCodeInput.value.toUpperCase();
-});
-
 rsvpForm.addEventListener('submit', async event => {
     event.preventDefault();
 
-    const code = inviteCodeInput.value.trim().toUpperCase();
-    const status = event.submitter?.value;
+    const name = guestNameInput.value.trim();
 
-    if (!/^ANIV-[A-F0-9]{8}$/.test(code)) {
-        showRsvpMessage(
-            'Informe um código de convite válido.',
-            'warning'
-        );
-        return;
-    }
-
-    if (!['confirmed', 'declined'].includes(status)) {
-        showRsvpMessage(
-            'Selecione uma resposta para o convite.',
-            'warning'
-        );
+    if (!name) {
+        showRsvpMessage('Informe seu nome para confirmar presença.', 'warning');
         return;
     }
 
     confirmPresenceButton.disabled = true;
-    declinePresenceButton.disabled = true;
-
-    const selectedButton = status === 'confirmed'
-        ? confirmPresenceButton
-        : declinePresenceButton;
-
-    const originalText = selectedButton.textContent;
-    selectedButton.textContent = 'Enviando resposta...';
-
+    confirmPresenceButton.textContent = 'Enviando confirmação...';
     rsvpMessage.textContent = '';
 
     try {
@@ -266,7 +241,7 @@ rsvpForm.addEventListener('submit', async event => {
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ code, status })
+                body: JSON.stringify({ name })
             }
         );
 
@@ -274,23 +249,21 @@ rsvpForm.addEventListener('submit', async event => {
 
         if (!response.ok) {
             throw new Error(
-                data.error || 'Não foi possível registrar sua resposta.'
+                data.error || 'Não foi possível registrar sua presença.'
             );
         }
 
         showRsvpMessage(
-            status === 'confirmed'
-                ? 'Presença confirmada! Será muito bom contar com você! ❤️'
-                : 'Resposta registrada. Sentiremos sua falta! ❤️'
+            'Presença confirmada! Será muito bom contar com você! ❤️'
         );
+
+        guestNameInput.value = '';
 
     } catch (error) {
         showRsvpMessage(error.message, 'danger');
 
     } finally {
         confirmPresenceButton.disabled = false;
-        declinePresenceButton.disabled = false;
-        selectedButton.textContent = originalText;
+        confirmPresenceButton.textContent = 'Confirmar presença';
     }
 });
-
