@@ -504,8 +504,13 @@ const guestDeclinedCount = document.getElementById('guest-declined-count');
 const guestPendingCount = document.getElementById('guest-pending-count');
 const guestSearchInput = document.getElementById('guest-search');
 const guestStatusFilter = document.getElementById('guest-status-filter');
+const guestsPagination = document.getElementById('guests-pagination');
+const guestsPaginationList = guestsPagination.querySelector('ul');
+
+const GUESTS_PER_PAGE = 10;
 
 let guestData = [];
+let guestCurrentPage = 1;
 
 function showGuestMessage(text, type = 'success') {
     guestMessage.textContent = text;
@@ -584,6 +589,72 @@ function normalizeGuestName(value) {
         .toLowerCase();
 }
 
+function renderGuestPagination(totalPages) {
+    guestsPaginationList.innerHTML = '';
+
+    if (totalPages <= 1) {
+        guestsPagination.classList.add('d-none');
+        return;
+    }
+
+    guestsPagination.classList.remove('d-none');
+
+    const createPageItem = (
+        label,
+        page,
+        { disabled = false, active = false } = {}
+    ) => {
+        const item = document.createElement('li');
+        item.className = 'page-item';
+
+        if (disabled) item.classList.add('disabled');
+        if (active) item.classList.add('active');
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'page-link';
+        button.textContent = label;
+        button.disabled = disabled;
+
+        button.addEventListener('click', () => {
+            if (disabled || page === guestCurrentPage) return;
+
+            guestCurrentPage = page;
+            renderGuests();
+        });
+
+        item.append(button);
+
+        return item;
+    };
+
+    guestsPaginationList.append(
+        createPageItem('Anterior', guestCurrentPage - 1, {
+            disabled: guestCurrentPage === 1
+        })
+    );
+
+    const startPage = Math.max(
+        1,
+        Math.min(guestCurrentPage - 2, totalPages - 4)
+    );
+    const endPage = Math.min(totalPages, startPage + 4);
+
+    for (let page = startPage; page <= endPage; page += 1) {
+        guestsPaginationList.append(
+            createPageItem(String(page), page, {
+                active: page === guestCurrentPage
+            })
+        );
+    }
+
+    guestsPaginationList.append(
+        createPageItem('Próxima', guestCurrentPage + 1, {
+            disabled: guestCurrentPage === totalPages
+        })
+    );
+}
+
 function renderGuests() {
     const guests = guestData;
 
@@ -608,6 +679,7 @@ function renderGuests() {
 
     if (guests.length === 0) {
         guestsList.textContent = 'Nenhum convidado cadastrado.';
+        renderGuestPagination(0);
         return;
     }
 
@@ -627,10 +699,27 @@ function renderGuests() {
 
     if (filteredGuests.length === 0) {
         guestsList.textContent = 'Nenhum convidado encontrado.';
+        renderGuestPagination(0);
         return;
     }
 
-    filteredGuests.forEach(guest => {
+    const totalPages = Math.ceil(
+        filteredGuests.length / GUESTS_PER_PAGE
+    );
+
+    guestCurrentPage = Math.min(
+        Math.max(guestCurrentPage, 1),
+        totalPages
+    );
+
+    const startIndex = (guestCurrentPage - 1) * GUESTS_PER_PAGE;
+
+    const paginatedGuests = filteredGuests.slice(
+        startIndex,
+        startIndex + GUESTS_PER_PAGE
+    );
+
+    paginatedGuests.forEach(guest => {
         const item = document.createElement('div');
         item.className = 'border rounded p-3';
 
@@ -691,6 +780,8 @@ function renderGuests() {
         item.append(header, updated, actions);
         guestsList.append(item);
     });
+
+    renderGuestPagination(totalPages);
 }
 
 async function deleteGuest(guestId, button) {
@@ -725,8 +816,15 @@ async function deleteGuest(guestId, button) {
 
 loadGuestsButton.addEventListener('click', fetchGuests);
 
-guestSearchInput.addEventListener('input', renderGuests);
-guestStatusFilter.addEventListener('change', renderGuests);
+guestSearchInput.addEventListener('input', () => {
+    guestCurrentPage = 1;
+    renderGuests();
+});
+
+guestStatusFilter.addEventListener('change', () => {
+    guestCurrentPage = 1;
+    renderGuests();
+});
 
 // ========================================
 // CONFIGURAÇÕES DO ANIVERSÁRIO
@@ -959,9 +1057,12 @@ adminLogoutButton.addEventListener('click', () => {
     reservationsList.textContent = 'Nenhuma reserva carregada.';
 
     guestData = [];
+    guestCurrentPage = 1;
     guestSearchInput.value = '';
     guestStatusFilter.value = 'all';
     guestsList.textContent = 'Nenhum convidado carregado.';
+    guestsPagination.classList.add('d-none');
+    guestsPaginationList.innerHTML = '';
 
     guestTotalCount.textContent = '0';
     guestConfirmedCount.textContent = '0';
