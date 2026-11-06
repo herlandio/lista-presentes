@@ -10,6 +10,12 @@ const addGiftButton = document.getElementById('add-gift-button');
 const giftFormMessage = document.getElementById('gift-form-message');
 const giftModalElement = document.getElementById('gift-modal');
 const giftModal = new bootstrap.Modal(giftModalElement);
+const giftsPagination = document.getElementById('gifts-pagination');
+const giftsPaginationList = giftsPagination.querySelector('ul');
+
+const GIFTS_PER_PAGE = 10;
+
+let giftsCurrentPage = 1;
 
 const fields = {
     id: document.getElementById('gift-id'),
@@ -28,6 +34,77 @@ function showMessage(text, type = 'success') {
 
 function hideMessage() {
     message.className = 'alert d-none';
+}
+
+function renderPagination(
+    container,
+    list,
+    currentPage,
+    totalPages,
+    onChange
+) {
+    list.innerHTML = '';
+
+    if (totalPages <= 1) {
+        container.classList.add('d-none');
+        return;
+    }
+
+    container.classList.remove('d-none');
+
+    const createPageItem = (
+        label,
+        page,
+        { disabled = false, active = false } = {}
+    ) => {
+        const item = document.createElement('li');
+        item.className = 'page-item';
+
+        if (disabled) item.classList.add('disabled');
+        if (active) item.classList.add('active');
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'page-link';
+        button.textContent = label;
+        button.disabled = disabled;
+
+        button.addEventListener('click', () => {
+            if (disabled || page === currentPage) return;
+
+            onChange(page);
+        });
+
+        item.append(button);
+
+        return item;
+    };
+
+    list.append(
+        createPageItem('Anterior', currentPage - 1, {
+            disabled: currentPage === 1
+        })
+    );
+
+    const startPage = Math.max(
+        1,
+        Math.min(currentPage - 2, totalPages - 4)
+    );
+    const endPage = Math.min(totalPages, startPage + 4);
+
+    for (let page = startPage; page <= endPage; page += 1) {
+        list.append(
+            createPageItem(String(page), page, {
+                active: page === currentPage
+            })
+        );
+    }
+
+    list.append(
+        createPageItem('Próxima', currentPage + 1, {
+            disabled: currentPage === totalPages
+        })
+    );
 }
 
 function showGiftFormMessage(text, type = 'danger') {
@@ -103,10 +180,28 @@ function renderGifts() {
 
     if (giftData.presentes.length === 0) {
         giftsList.textContent = 'Nenhum presente cadastrado.';
+        giftsPagination.classList.add('d-none');
+        giftsPaginationList.innerHTML = '';
         return;
     }
 
-    giftData.presentes.forEach(gift => {
+    const totalPages = Math.ceil(
+        giftData.presentes.length / GIFTS_PER_PAGE
+    );
+
+    giftsCurrentPage = Math.min(
+        Math.max(giftsCurrentPage, 1),
+        totalPages
+    );
+
+    const startIndex = (giftsCurrentPage - 1) * GIFTS_PER_PAGE;
+
+    const paginatedGifts = giftData.presentes.slice(
+        startIndex,
+        startIndex + GIFTS_PER_PAGE
+    );
+
+    paginatedGifts.forEach(gift => {
         const item = document.createElement('div');
 
         item.className =
@@ -156,6 +251,17 @@ function renderGifts() {
 
         giftsList.append(item);
     });
+
+    renderPagination(
+        giftsPagination,
+        giftsPaginationList,
+        giftsCurrentPage,
+        totalPages,
+        page => {
+            giftsCurrentPage = page;
+            renderGifts();
+        }
+    );
 }
 
 function editGift(id) {
@@ -328,6 +434,13 @@ const adminToken = document.getElementById('admin-token');
 const loadReservationsButton = document.getElementById('load-reservations');
 const reservationsList = document.getElementById('reservations-list');
 const reservationsMessage = document.getElementById('reservations-message');
+const reservationsPagination = document.getElementById('reservations-pagination');
+const reservationsPaginationList = reservationsPagination.querySelector('ul');
+
+const RESERVATIONS_PER_PAGE = 10;
+
+let reservationsData = [];
+let reservationsCurrentPage = 1;
 
 const adminAccessSection = document.getElementById('admin-access');
 const adminAccessForm = document.getElementById('admin-access-form');
@@ -384,10 +497,13 @@ async function fetchReservations() {
             );
         }
 
-        renderReservations(data);
+        reservationsData = data;
+
+        renderReservations();
 
     } catch (error) {
         reservationsList.textContent = '';
+        reservationsPagination.classList.add('d-none');
         showReservationMessage(error.message, 'danger');
 
     } finally {
@@ -396,15 +512,36 @@ async function fetchReservations() {
     }
 }
 
-function renderReservations(reservations) {
+function renderReservations() {
+    const reservations = reservationsData;
+
     reservationsList.innerHTML = '';
 
     if (reservations.length === 0) {
         reservationsList.textContent = 'Nenhuma reserva realizada.';
+        reservationsPagination.classList.add('d-none');
+        reservationsPaginationList.innerHTML = '';
         return;
     }
 
-    reservations.forEach(reservation => {
+    const totalPages = Math.ceil(
+        reservations.length / RESERVATIONS_PER_PAGE
+    );
+
+    reservationsCurrentPage = Math.min(
+        Math.max(reservationsCurrentPage, 1),
+        totalPages
+    );
+
+    const startIndex =
+        (reservationsCurrentPage - 1) * RESERVATIONS_PER_PAGE;
+
+    const paginatedReservations = reservations.slice(
+        startIndex,
+        startIndex + RESERVATIONS_PER_PAGE
+    );
+
+    paginatedReservations.forEach(reservation => {
         const gift = giftData.presentes.find(
             item => Number(item.id) === Number(reservation.giftId)
         );
@@ -445,6 +582,17 @@ function renderReservations(reservations) {
         item.append(details, cancelButton);
         reservationsList.append(item);
     });
+
+    renderPagination(
+        reservationsPagination,
+        reservationsPaginationList,
+        reservationsCurrentPage,
+        totalPages,
+        page => {
+            reservationsCurrentPage = page;
+            renderReservations();
+        }
+    );
 }
 
 async function cancelReservation(reservationId, button) {
@@ -590,68 +738,15 @@ function normalizeGuestName(value) {
 }
 
 function renderGuestPagination(totalPages) {
-    guestsPaginationList.innerHTML = '';
-
-    if (totalPages <= 1) {
-        guestsPagination.classList.add('d-none');
-        return;
-    }
-
-    guestsPagination.classList.remove('d-none');
-
-    const createPageItem = (
-        label,
-        page,
-        { disabled = false, active = false } = {}
-    ) => {
-        const item = document.createElement('li');
-        item.className = 'page-item';
-
-        if (disabled) item.classList.add('disabled');
-        if (active) item.classList.add('active');
-
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'page-link';
-        button.textContent = label;
-        button.disabled = disabled;
-
-        button.addEventListener('click', () => {
-            if (disabled || page === guestCurrentPage) return;
-
+    renderPagination(
+        guestsPagination,
+        guestsPaginationList,
+        guestCurrentPage,
+        totalPages,
+        page => {
             guestCurrentPage = page;
             renderGuests();
-        });
-
-        item.append(button);
-
-        return item;
-    };
-
-    guestsPaginationList.append(
-        createPageItem('Anterior', guestCurrentPage - 1, {
-            disabled: guestCurrentPage === 1
-        })
-    );
-
-    const startPage = Math.max(
-        1,
-        Math.min(guestCurrentPage - 2, totalPages - 4)
-    );
-    const endPage = Math.min(totalPages, startPage + 4);
-
-    for (let page = startPage; page <= endPage; page += 1) {
-        guestsPaginationList.append(
-            createPageItem(String(page), page, {
-                active: page === guestCurrentPage
-            })
-        );
-    }
-
-    guestsPaginationList.append(
-        createPageItem('Próxima', guestCurrentPage + 1, {
-            disabled: guestCurrentPage === totalPages
-        })
+        }
     );
 }
 
@@ -1052,9 +1147,16 @@ adminLogoutButton.addEventListener('click', () => {
     adminLogoutButton.classList.add('d-none');
 
     giftData.presentes = [];
-
+    giftsCurrentPage = 1;
     giftsList.innerHTML = 'Carregando presentes...';
+    giftsPagination.classList.add('d-none');
+    giftsPaginationList.innerHTML = '';
+
+    reservationsData = [];
+    reservationsCurrentPage = 1;
     reservationsList.textContent = 'Nenhuma reserva carregada.';
+    reservationsPagination.classList.add('d-none');
+    reservationsPaginationList.innerHTML = '';
 
     guestData = [];
     guestCurrentPage = 1;
