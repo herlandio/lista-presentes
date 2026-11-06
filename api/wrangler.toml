@@ -1,3 +1,4 @@
+
 name = "lista-presentes-api"
 main = "src/index.js"
 compatibility_date = "2026-05-03"
@@ -10,5 +11,6 @@ class_name = "ReservationsStore"
 [[migrations]]
 tag = "v1"
 new_sqlite_classes = ["ReservationsStore"]
+
 [vars]
-ALLOWED_ORIGINS = "http://localhost:8000,https://herlandio.github.io,https://sophia-miranda.github.io/"
+ALLOWED_ORIGINS = "http://localhost:8000,https://herlandio.github.io,https://sophia-miranda.github.io"
