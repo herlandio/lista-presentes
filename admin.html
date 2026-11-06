@@ -87,6 +87,119 @@
 
         <div id="admin-message" class="alert d-none" role="alert"></div>
 
+        <ul class="nav nav-tabs mb-4" id="admin-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button
+                    class="nav-link active"
+                    id="tab-gifts"
+                    data-bs-toggle="tab"
+                    data-bs-target="#pane-gifts"
+                    type="button"
+                    role="tab"
+                    aria-controls="pane-gifts"
+                    aria-selected="true"
+                >
+                    Presentes
+                </button>
+            </li>
+
+            <li class="nav-item" role="presentation">
+                <button
+                    class="nav-link"
+                    id="tab-reservations"
+                    data-bs-toggle="tab"
+                    data-bs-target="#pane-reservations"
+                    type="button"
+                    role="tab"
+                    aria-controls="pane-reservations"
+                    aria-selected="false"
+                >
+                    Reservas
+                </button>
+            </li>
+
+            <li class="nav-item" role="presentation">
+                <button
+                    class="nav-link"
+                    id="tab-guests"
+                    data-bs-toggle="tab"
+                    data-bs-target="#pane-guests"
+                    type="button"
+                    role="tab"
+                    aria-controls="pane-guests"
+                    aria-selected="false"
+                >
+                    Convidados
+                </button>
+            </li>
+
+            <li class="nav-item" role="presentation">
+                <button
+                    class="nav-link"
+                    id="tab-settings"
+                    data-bs-toggle="tab"
+                    data-bs-target="#pane-settings"
+                    type="button"
+                    role="tab"
+                    aria-controls="pane-settings"
+                    aria-selected="false"
+                >
+                    Configurações
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="admin-tabs-content">
+
+        <div
+            class="tab-pane fade show active"
+            id="pane-gifts"
+            role="tabpanel"
+            aria-labelledby="tab-gifts"
+        >
+            <section class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <h2 class="h5 mb-0">Presentes cadastrados</h2>
+
+                            <span id="gift-count" class="badge text-bg-secondary">
+                                0 presentes
+                            </span>
+                        </div>
+
+                        <button
+                            type="button"
+                            id="add-gift-button"
+                            class="btn btn-primary"
+                        >
+                            Adicionar presente
+                        </button>
+                    </div>
+
+                    <div id="gifts-list">
+                        Carregando presentes...
+                    </div>
+
+                    <nav
+                        id="gifts-pagination"
+                        class="mt-3 d-none"
+                        aria-label="Paginação de presentes"
+                    >
+                        <ul class="pagination pagination-sm justify-content-center mb-0"></ul>
+                    </nav>
+
+                </div>
+            </section>
+        </div>
+
+        <div
+            class="tab-pane fade"
+            id="pane-reservations"
+            role="tabpanel"
+            aria-labelledby="tab-reservations"
+        >
         <section class="card border-0 shadow-sm mb-4">
             <div class="card-body p-4">
 
@@ -118,8 +231,15 @@
 
             </div>
         </section>
+        </div>
 
         <!-- GERENCIAMENTO DE CONVIDADOS -->
+        <div
+            class="tab-pane fade"
+            id="pane-guests"
+            role="tabpanel"
+            aria-labelledby="tab-guests"
+        >
         <section class="card border-0 shadow-sm mb-4">
             <div class="card-body p-4">
 
@@ -209,8 +329,15 @@
 
             </div>
         </section>
-        
+        </div>
+
         <!-- CONFIGURAÇÕES DO ANIVERSÁRIO -->
+        <div
+            class="tab-pane fade"
+            id="pane-settings"
+            role="tabpanel"
+            aria-labelledby="tab-settings"
+        >
         <section class="card border-0 shadow-sm mb-4">
             <div class="card-body p-4">
 
@@ -230,6 +357,9 @@
 
             </div>
         </section>
+        </div>
+
+        </div>
 
         <div
             class="modal fade"
@@ -338,42 +468,6 @@
                 </div>
             </div>
         </div>
-
-        <section class="card border-0 shadow-sm">
-            <div class="card-body p-4">
-
-                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-                    <div class="d-flex align-items-center gap-2">
-                        <h2 class="h5 mb-0">Presentes cadastrados</h2>
-
-                        <span id="gift-count" class="badge text-bg-secondary">
-                            0 presentes
-                        </span>
-                    </div>
-
-                    <button
-                        type="button"
-                        id="add-gift-button"
-                        class="btn btn-primary"
-                    >
-                        Adicionar presente
-                    </button>
-                </div>
-
-                <div id="gifts-list">
-                    Carregando presentes...
-                </div>
-
-                <nav
-                    id="gifts-pagination"
-                    class="mt-3 d-none"
-                    aria-label="Paginação de presentes"
-                >
-                    <ul class="pagination pagination-sm justify-content-center mb-0"></ul>
-                </nav>
-
-            </div>
-        </section>
 
         <div
             class="modal fade"
