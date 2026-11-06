@@ -5,6 +5,33 @@ const formatCurrency = (value) => {
     }).format(value);
 };
 
+const appendDescription = (element, value) => {
+    const lines = String(value || '').split(/\r?\n/);
+
+    lines.forEach((line, index) => {
+        if (index > 0) {
+            element.append(document.createElement('br'));
+        }
+
+        element.append(document.createTextNode(line));
+    });
+};
+
+const appendMessage = (element, value) => {
+    const lines = String(value || '')
+        .split(/\r?\n/)
+        .map(line => line.trim())
+        .filter(Boolean);
+
+    lines.forEach((line, index) => {
+        if (index > 0) {
+            element.append(document.createElement('br'));
+        }
+
+        element.append(document.createTextNode(line));
+    });
+};
+
 const formatDate = (value) => {
     if (!value) return 'Data a definir';
 
@@ -35,8 +62,14 @@ async function loadGifts() {
         document.getElementById('birthday-name').textContent =
         settings.nome ? `Aniversário de ${settings.nome}` : '';
 
-        document.getElementById('birthday-message').textContent =
-            settings.mensagem || 'Sua presença já é um presente!';
+        const birthdayMessage = document.getElementById('birthday-message');
+
+        birthdayMessage.textContent = '';
+
+        appendMessage(
+            birthdayMessage,
+            settings.mensagem || 'Sua presença já é um presente!'
+        );
 
         document.getElementById('birthday-date').textContent =
             settings.data ? formatDate(settings.data) : 'Meu aniversário';
@@ -66,7 +99,7 @@ async function loadGifts() {
 
             const description = document.createElement('p');
             description.className = 'gift-description';
-            description.textContent = gift.descricao;
+            appendDescription(description, gift.descricao);
 
             const price = document.createElement('div');
             price.className = 'gift-price';
